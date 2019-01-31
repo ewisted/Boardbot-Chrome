@@ -93,15 +93,16 @@ function injectUI() {
     mainContainer.appendChild(nameBox);
 
     playButtonImage.addEventListener("click", function(){
-        var startTime = timeToMS(startBox.value) / 1000;
+        var startTime = timeToMS(startBox.value);
         var endTime = timeToMS(endBox.value);
+        var clipTime = endTime - startTime;
 
-        video.currentTime = startTime;
+        video.currentTime = (startTime / 1000);
         video.play();
 
         setTimeout(function() {
             video.pause();
-        }, endTime)
+        }, clipTime);
     });
 
     submitButtonImage.addEventListener("click", function(){
@@ -130,12 +131,22 @@ function timeToMS(time) {
     if(time.length == 8){
         if(time[2] == ":" && time[5] == ":"){
             timeArray = time.split(":");
+            timeArray.forEach(e => {
+                if(e.indexOf("0" == 0)){
+                    e = e[1];
+                }
+            });
         }
     }
     if(time.length == 10){
         if(time[2] == ":" && time[5] == ":" && time[8] == "."){
             splitString = time.split(".");
             timeArray = splitString[0].split(":");
+            timeArray.forEach(e => {
+                if(e.indexOf("0" == 0)){
+                    e = e[1];
+                }
+            });
             ms = splitString[1];
         }
     }
@@ -145,5 +156,7 @@ function timeToMS(time) {
     milliseconds = parseInt(ms, 10) * 100;
     var totalMilliseconds = milliseconds + (seconds * 1000) + (minutes * 60000) + (hours * 3600000);
 
+    //console.log("Minutes: " + minutes + " Seconds: " + seconds + " MS: " + milliseconds);
+    
     return totalMilliseconds;
 }
