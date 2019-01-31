@@ -7,7 +7,7 @@ var videoAvailable = setInterval(function() {
         injectUI();
         clearInterval(videoAvailable);
     }
-}, 100)
+}, 100);
 
 var mainContainer, startBox, endBox, nameBox, playButton, submitButton;
 var playButtonImage, submitButtonImage, playButtonImageUrl, submitButtonImageUrl;
