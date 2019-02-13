@@ -1,11 +1,12 @@
-var video, videoControls, videoInfo;
+var video, videoInfo;
 var videoAvailable = setInterval(function() {
     video = document.getElementsByClassName("html5-main-video")[0];
-    videoControls = document.getElementsByClassName("ytp-chrome-controls")[0];
     videoInfo = document.getElementsByClassName("ytd-video-primary-info-renderer")[0];
-    if(document.location.search.indexOf("?v=") >= 0 && video != undefined && videoInfo.children.length == 6) {
-        injectUI();
-        clearInterval(videoAvailable);
+    if (videoInfo){
+        if(document.location.search.indexOf("?v=") >= 0 && video != undefined && videoInfo.children.length == 6) {
+            injectUI();
+            clearInterval(videoAvailable);
+        }
     }
 }, 100);
 
@@ -13,8 +14,8 @@ var mainContainer, startBox, endBox, nameBox, playButton, submitButton;
 var playButtonImage, submitButtonImage, playButtonImageUrl, submitButtonImageUrl;
 
 function injectUI() {
-    playButtonImageUrl = "https://icon-icons.com/icons2/1147/PNG/32/1486486316-arrow-film-movie-play-player-start-video_81236.png";
-    submitButtonImageUrl = "https://icon-icons.com/icons2/272/PNG/32/Downloads_29996.png";
+    playButtonImageUrl = chrome.extension.getURL("/images/baseline_play_circle_outline_black_24dp.png");
+    submitButtonImageUrl = chrome.extension.getURL("/images/baseline_add_circle_outline_black_24dp.png");
 
     mainContainer = document.createElement("div");
     mainContainer.id = "main-container";
