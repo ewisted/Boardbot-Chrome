@@ -1,21 +1,42 @@
-var video, videoInfo;
+var video, videoInfo, lightPlayButtonImageUrl, lightSubmitButtonImageUrl, darkPlayButtonImageUrl, darkSubmitButtonImageUrl;
+lightPlayButtonImageUrl = chrome.runtime.getURL("/images/play_circle_outline_white_48x48.png");
+lightSubmitButtonImageUrl = chrome.runtime.getURL("/images/add_circle_outline_white_48x48.png");
+darkPlayButtonImageUrl = chrome.runtime.getURL("/images/play_circle_outline_black_48x48.png");
+darkSubmitButtonImageUrl = chrome.runtime.getURL("/images/add_circle_outline_black_48x48.png");
+
 var videoAvailable = setInterval(function() {
     video = document.getElementsByClassName("html5-main-video")[0];
     videoInfo = document.getElementsByClassName("ytd-video-primary-info-renderer")[0];
-    if (videoInfo){
-        if(document.location.search.indexOf("?v=") >= 0 && video != undefined && videoInfo.children.length == 6) {
-            injectUI();
-            clearInterval(videoAvailable);
+    chrome.storage.sync.get(['enabled'], function(data) {
+        if (videoInfo && data.enabled && video != undefined){
+            if (videoInfo.children.length == 6) {
+                injectUI();
+                clearInterval(videoAvailable);
+            }
         }
-    }
+    });   
 }, 100);
 
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      console.log(sender.tab ?
+                  "from a content script:" + sender.tab.url :
+                  "from the extension");
+      if (request.enabled == false) {
+        videoInfo.removeChild(document.getElementById("main-container"));
+      }
+      if (request.enabled == true) {
+        if (videoInfo.children.length == 6) {
+            injectUI();
+        }
+      }
+      
+    });
+
 var mainContainer, startBox, endBox, nameBox, playButton, submitButton;
-var playButtonImage, submitButtonImage, playButtonImageUrl, submitButtonImageUrl;
+var playButtonImage, submitButtonImage;
 
 function injectUI() {
-    playButtonImageUrl = chrome.extension.getURL("/images/baseline_play_circle_outline_black_24dp.png");
-    submitButtonImageUrl = chrome.extension.getURL("/images/baseline_add_circle_outline_black_24dp.png");
 
     mainContainer = document.createElement("div");
     mainContainer.id = "main-container";
@@ -59,7 +80,7 @@ function injectUI() {
     playButtonImage.style.height = "100%";
     playButtonImage.style.float = "right";
     playButtonImage.style.padding = "4px 0";
-    playButtonImage.src = playButtonImageUrl;
+    playButtonImage.src = darkPlayButtonImageUrl;
     playButton.appendChild(playButtonImage);
 
     submitButton = document.createElement("div");
@@ -75,7 +96,7 @@ function injectUI() {
     submitButtonImage.style.height = "100%";
     submitButtonImage.style.float = "right";
     submitButtonImage.style.padding = "4px 0";
-    submitButtonImage.src = submitButtonImageUrl;
+    submitButtonImage.src = darkSubmitButtonImageUrl;
     submitButton.appendChild(submitButtonImage);
 
     var nameBoxSeparator = document.createElement("span");

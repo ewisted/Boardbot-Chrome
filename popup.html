@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-      button {
-        height: 30px;
-        width: 30px;
-        outline: none;
-      }
-    </style>
+    <title>Boardbot-Chrome</title>
+    <link rel="stylesheet" type="text/css" href="popup.css">
   </head>
   <body>
-    <button id="changeColor"></button>
+    <div class="vertical-menu">
+      <div class="menu-item" id="toggle-state"> Toggle On/Off</div>
+      <hr>
+      <p>Theme</p>
+      <form>
+        <input type="radio" name="theme" value="Light"> Light Mode<br>
+        <input type="radio" name="theme" value="Dark"> Dark Mode<br>
+        <br>
+        <input type="submit" value="Submit">
+      </form>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

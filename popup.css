@@ -1,0 +1,14 @@
+.vertical-menu {
+    width: 200px;
+}
+
+.menu-item {
+    color: black; /* Black text color */
+    display: block; /* Make the links appear below each other */
+    padding: 2px; /* Add some padding */
+    text-decoration: none; /* Remove underline from links */
+  }
+  
+  .menu-item:hover {
+    background-color: #f2f2f2; /* Grey background on mouse-over */
+  }
