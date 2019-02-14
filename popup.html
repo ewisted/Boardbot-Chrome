@@ -8,13 +8,13 @@
     <div class="vertical-menu">
       <div class="menu-item" id="toggle-state"> Toggle On/Off</div>
       <hr>
-      <p>Theme</p>
-      <form>
-        <input type="radio" name="theme" value="Light"> Light Mode<br>
-        <input type="radio" name="theme" value="Dark"> Dark Mode<br>
+      <p id="current-theme">Theme</p>
+      <form id="theme-form">
+        <input type="radio" name="theme" value="light" checked> Light Mode<br>
+        <input type="radio" name="theme" value="dark"> Dark Mode<br>
         <br>
-        <input type="submit" value="Submit">
       </form>
+      <button type="button" id="theme-button">Submit</button>
     </div>
     <script src="popup.js"></script>
   </body>

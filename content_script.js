@@ -4,6 +4,7 @@ lightSubmitButtonImageUrl = chrome.runtime.getURL("/images/add_circle_outline_wh
 darkPlayButtonImageUrl = chrome.runtime.getURL("/images/play_circle_outline_black_48x48.png");
 darkSubmitButtonImageUrl = chrome.runtime.getURL("/images/add_circle_outline_black_48x48.png");
 
+// Main function for injecting our ui
 var videoAvailable = setInterval(function() {
     video = document.getElementsByClassName("html5-main-video")[0];
     videoInfo = document.getElementsByClassName("ytd-video-primary-info-renderer")[0];
@@ -17,6 +18,7 @@ var videoAvailable = setInterval(function() {
     });   
 }, 100);
 
+// Recieves messages from popup.js or background.js
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       console.log(sender.tab ?
@@ -38,82 +40,112 @@ var playButtonImage, submitButtonImage;
 
 function injectUI() {
 
+    // Container for all out elements
     mainContainer = document.createElement("div");
     mainContainer.id = "main-container";
     mainContainer.style.height = "32px";
     mainContainer.style.width = "360px";
-    videoInfo.appendChild(mainContainer);
+    
 
+    // Start time input element
     startBox = document.createElement("input");
     startBox.id = "startBox";
     startBox.type = "text";
     startBox.style.width = "72px";
     startBox.style.height = "24px";
     startBox.value = "00:00:00";
-    mainContainer.appendChild(startBox);
+    
 
+    // Separates the start time and end time inputs
     var timeBoxSeparator = document.createElement("span");
     timeBoxSeparator.textContent = "\u2014";
     timeBoxSeparator.style.margin = "0 5px";
     timeBoxSeparator.style.paddingTop = "2px";
     timeBoxSeparator.style.fontSize = "12px";
-    mainContainer.appendChild(timeBoxSeparator);
+    
 
+    // End time input element
     endBox = document.createElement("input");
     endBox.id = "endBox";
     endBox.type = "text";
     endBox.style.width = "72px";
     endBox.style.height = "24px";
     endBox.value = "00:00:05.6";
-    mainContainer.appendChild(endBox);
+    
 
+    // Play button (previews clip)
     playButton = document.createElement("div");
     playButton.id = "playButton";
     playButton.setAttribute("role", "button");
     playButton.style.height = "100%";
     playButton.style.float = "right";
     playButton.style.cursor = "pointer";
-    mainContainer.appendChild(playButton);
+    
 
+    // Icon for our play button
     playButtonImage = document.createElement("img");
     playButtonImage.style.boxSizing = "border-box";
     playButtonImage.style.height = "100%";
     playButtonImage.style.float = "right";
     playButtonImage.style.padding = "4px 0";
-    playButtonImage.src = darkPlayButtonImageUrl;
-    playButton.appendChild(playButtonImage);
+    
 
+    // Sumbit button (copies command args to clipboard)
     submitButton = document.createElement("div");
     submitButton.id = "submitButton";
     submitButton.setAttribute("role", "button");
     submitButton.style.height = "100%";
     submitButton.style.float = "right";
     submitButton.style.cursor = "pointer";
-    mainContainer.appendChild(submitButton);
+    
 
+    // Icon for our submit button
     submitButtonImage = document.createElement("img");
     submitButtonImage.style.boxSizing = "border-box";
     submitButtonImage.style.height = "100%";
     submitButtonImage.style.float = "right";
     submitButtonImage.style.padding = "4px 0";
-    submitButtonImage.src = darkSubmitButtonImageUrl;
-    submitButton.appendChild(submitButtonImage);
+    
 
+    // Separates end time input element from the clip name input element
     var nameBoxSeparator = document.createElement("span");
     nameBoxSeparator.textContent = "\u2014";
     nameBoxSeparator.style.margin = "0 5px";
     nameBoxSeparator.style.paddingTop = "2px";
     nameBoxSeparator.style.fontSize = "12px";
-    mainContainer.appendChild(nameBoxSeparator);
+    
 
+    // Clip name input element
     nameBox = document.createElement("input");
     nameBox.id = "startBox";
     nameBox.type = "text";
     nameBox.style.width = "100px";
     nameBox.style.height = "24px";
     nameBox.value = "Clip Name";
+    
+    chrome.storage.sync.get(['theme'], function(data) {
+        if (data.theme == "light") {
+            playButtonImage.src = darkPlayButtonImageUrl;
+            submitButtonImage.src = darkSubmitButtonImageUrl;
+        }
+        if (data.theme == "dark") {
+            playButtonImage.src = lightPlayButtonImageUrl;
+            submitButtonImage.src = lightSubmitButtonImageUrl;
+        }
+    });
+
+    videoInfo.appendChild(mainContainer);
+    mainContainer.appendChild(startBox);
+    mainContainer.appendChild(timeBoxSeparator);
+    mainContainer.appendChild(endBox);
+    mainContainer.appendChild(playButton);
+    playButton.appendChild(playButtonImage);
+    mainContainer.appendChild(submitButton);
+    submitButton.appendChild(submitButtonImage);
+    mainContainer.appendChild(nameBoxSeparator);
     mainContainer.appendChild(nameBox);
 
+    // Preview clip
     playButtonImage.addEventListener("click", function(){
         var startTime = timeToMS(startBox.value);
         var endTime = timeToMS(endBox.value);
@@ -127,6 +159,7 @@ function injectUI() {
         }, clipTime);
     });
 
+    // Copy the add-clip command to users clipboard
     submitButtonImage.addEventListener("click", function(){
         var commandString = "@Boardbot add-clip ";
         commandString = commandString + nameBox.value + " ";

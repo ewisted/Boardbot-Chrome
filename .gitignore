@@ -1,0 +1,5 @@
+# Igore VS Code directory
+.vscode
+
+# Ignore node modules
+node_modules
