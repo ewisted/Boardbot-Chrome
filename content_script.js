@@ -25,7 +25,7 @@ chrome.runtime.onMessage.addListener(
       if (request.enabled == false) {
         videoInfo.removeChild(document.getElementById("main-container"));
       }
-      if (request.enabled == true) {
+      if (request.enabled == true && videoInfo && video != undefined) {
         if (videoInfo.children.length == 6) {
             injectUI();
         }
@@ -150,28 +150,36 @@ function timeToMS(time) {
     var timeArray = [];
     var ms = "0";
     var milliseconds = 0;
+    // If the timespan is formatted as 00:00:00
     if(time.length == 8){
         if(time[2] == ":" && time[5] == ":"){
+            // Break up the timespan into parts by ":" so we get an array with 00, 00, and 00
             timeArray = time.split(":");
+            // Remove leading 0's
             timeArray.forEach(e => {
-                if(e.indexOf("0" == 0)){
+                if(e.indexOf(0) == "0"){
                     e = e[1];
                 }
             });
         }
     }
+    // If the timespan is formatted as 00:00:00.0
     if(time.length == 10){
         if(time[2] == ":" && time[5] == ":" && time[8] == "."){
+            // Splitting by "." will give us an array with two members, 00:00:00 and 0
             splitString = time.split(".");
+            // Break up the timespan into parts by ":" so we get an array with 00, 00, and 00
             timeArray = splitString[0].split(":");
+            // Remove leading 0's
             timeArray.forEach(e => {
-                if(e.indexOf("0" == 0)){
+                if(e.indexOf(0) == "0"){
                     e = e[1];
                 }
             });
             ms = splitString[1];
         }
     }
+    // Parse all the elements of the array as ints
     var hours = parseInt(timeArray[0], 10);
     var minutes = parseInt(timeArray[1], 10);
     var seconds = parseInt(timeArray[2], 10);
