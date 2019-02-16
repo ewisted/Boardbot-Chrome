@@ -1,0 +1,42 @@
+{
+  "name": "Boardbot Clip Maker",
+  "version": "0.1.0",
+  "description": "Make it easy to add clips to Boardbot",
+  "permissions": ["activeTab", "declarativeContent", "storage"],
+  "options_page": "index.html#/homepage",
+  "background": {
+    "page": "index.html#/event-page",
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.youtube.com/watch?v=*"],
+      "js": ["content-script.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "browser_action": {
+    "default_popup": "index.html#/popup",
+    "default_icon": {
+      "16": "assets/discord-icon-active16.png",
+      "32": "assets/discord-icon-active32.png",
+      "48": "assets/discord-icon-active48.png",
+      "128": "assets/discord-icon-active128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/discord-icon-active16.png",
+    "32": "assets/discord-icon-active32.png",
+    "48": "assets/discord-icon-active48.png",
+    "128": "assets/discord-icon-active128.png"
+  },
+  "web_accessible_resources": [
+    "assets/play_circle_outline_black_48x48.png",
+    "assets/add_circle_outline_black_48x48.png",
+    "assets/play_circle_outline_white_48x48.png",
+    "assets/add_circle_outline_white_48x48.png",
+    "assets/play_circle_outline_looping_48x48.png"
+  ],
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
