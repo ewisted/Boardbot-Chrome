@@ -19,21 +19,14 @@ var videoAvailable = setInterval(function() {
 }, 100);
 
 // Recieves messages from popup.js or background.js
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      console.log(sender.tab ?
-                  "from a content script:" + sender.tab.url :
-                  "from the extension");
-      if (request.enabled == false) {
-        videoInfo.removeChild(document.getElementById("main-container"));
-      }
-      if (request.enabled == true && videoInfo && video != undefined) {
-        if (videoInfo.children.length == 6) {
-            injectUI();
+chrome.runtime.onConnect.addListener(function(port) {
+    console.log("Conent script connected on listening port");
+    port.onMessage.addListener(function(msg) {
+        if (msg.getVideoInfo == "length") {
+            port.postMessage({length: video.duration});
         }
-      }
-      
     });
+});
 
 var mainContainer, startBox, endBox, nameBox, playButton, submitButton;
 var playButtonImage, submitButtonImage;

@@ -1,36 +1,81 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Boardbot-Chrome</title>
-  </head>
-  <body>
-    <div class="vertical-menu">
-      <div class="menu-item" id="toggle-state"><h3>Toggle On/Off</h3></div>
-      <hr>
-      <mat-card class="theme-card">
-        <mat-card-header>
-          <mat-card-title>Select Theme</mat-card-title>
-          <mat-card-subtitle>Set this to whatever YouTube theme you use</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-radio-group class="theme-radio-group" [(ngModel)]="selectedTheme">
-            <mat-radio-button class="theme-radio-button" *ngFor="let theme of availableThemes" [value]="theme">
-              {{theme}}
-            </mat-radio-button>
-          </mat-radio-group>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-raised-button color="accent" (click)="updateTheme(selectedTheme)">Submit</button>
-        </mat-card-actions>
-      </mat-card>
-      <!-- <p id="current-theme">Theme</p>
-      <form id="theme-form">
-        <input type="radio" name="theme" value="light" checked> Light Mode<br>
-        <input type="radio" name="theme" value="dark"> Dark Mode<br>
-        <br>
+<ng-container *ngIf="!timeInput || !videoEndTime">
+    <mat-spinner></mat-spinner>
+  </ng-container>
+  <mat-card class="theme-card">
+    <mat-card-header>
+      <mat-card-title>Clip Maker</mat-card-title>
+      <mat-card-subtitle>Set the start and end times to preview your clip</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="timeInput" (ngSubmit)="submit()">
+          <h3 class="info-h3">Enter clip start time</h3>
+          <div class="time-input-section" formGroupName="startTime">
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="startMinutesMax()" min="0" placeholder="Minutes" (keyup)="onStartMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
+              <mat-error *ngIf="timeInput.hasError('invalidStartMinutes')">
+                Start time cannot begin after the clip end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('startTime.minutes').hasError('required')">
+                Start minutes is required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="startSecondsMax()" min="0" placeholder="Seconds" (keyup)="onStartSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
+              <mat-error *ngIf="timeInput.hasError('invalidStartSeconds') && !timeInput.get('startTime.seconds').hasError('required')">
+                Start time cannot begin after the clip end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('startTime.seconds').hasError('required')">
+                Start seconds is required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="startMsMax()" min="0" placeholder="Milliseconds" (keyup)="onStartMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
+              <mat-error *ngIf="timeInput.hasError('invalidStartMs') && !timeInput.get('startTime.ms').hasError('required')">
+                Start time cannot begin after the clip end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('startTime.ms').hasError('required')">
+                Start milliseconds is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <mat-divider></mat-divider>
+          <h3 class="info-h3">Enter clip end time</h3>
+          <div class="time-input-section" formGroupName="endTime">
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="endMinutesMax()" min="0" placeholder="Minutes" (keyup)="onEndMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
+              <mat-error *ngIf="timeInput.hasError('invalidEndMinutes') && !timeInput.get('endTime.minutes').hasError('required')">
+                Clip end time cannot begin after the video end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('endTime.minutes').hasError('required')">
+                End minutes is required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="endSecondsMax()" min="0" placeholder="Seconds" (keyup)="onEndSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
+              <mat-error *ngIf="timeInput.hasError('invalidEndSeconds') && !timeInput.get('endTime.seconds').hasError('required')">
+                Clip end time cannot begin after the video end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('endTime.seconds').hasError('required')">
+                End seconds is required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="time-input-margin">
+              <input matInput type="number" [max]="endMsMax()" min="0" placeholder="Milliseconds" (keyup)="onEndMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
+              <mat-error *ngIf="timeInput.hasError('invalidEndMs') && !timeInput.get('endTime.ms').hasError('required')">
+                Clip end time cannot begin after the video end time
+              </mat-error>
+              <mat-error *ngIf="timeInput.get('endTime.ms').hasError('required')">
+                End milliseconds is required
+              </mat-error>
+            </mat-form-field>
+          </div>
       </form>
-      <button type="button" id="theme-button">Submit</button> -->
-    </div>
-    <script src="popup.js"></script>
-  </body>
-</html>
+    </mat-card-content>
+    <mat-card-actions>
+      <section class="button-section">
+        <button mat-raised-button class="button-margin" color="accent">Preview</button>
+        <button mat-raised-button class="button-margin" color="accent">Save</button>
+      </section>
+    </mat-card-actions>
+  </mat-card>
+  <script src="popup.js"></script>

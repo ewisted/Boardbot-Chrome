@@ -1,18 +1,24 @@
-.vertical-menu {
-    width: 300px;
+.info-h3 {
+  margin: 10px;
 }
 
-.menu-item {
-    color: black; /* Black text color */
-    display: block; /* Make the links appear below each other */
-    padding: 2px; /* Add some padding */
-    text-decoration: none; /* Remove underline from links */
-  }
-  
-  .menu-item:hover {
-    background-color: #f2f2f2; /* Grey background on mouse-over */
-  }
+.time-input-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+}
 
-  .mat-radio-button ~ .mat-radio-button {
-    margin-left: 16px;
-  }
+.time-input-margin {
+  margin: 10px;
+}
+
+.button-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+}
+
+.button-margin {
+  margin-left: 10px;
+}
