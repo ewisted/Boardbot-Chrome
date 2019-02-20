@@ -1,5 +1,6 @@
-import { ValidatorFn, AbstractControl } from '@angular/forms';
+import { ValidatorFn, AbstractControl, FormControl, FormGroupDirective, NgForm } from '@angular/forms';
 import { Injectable } from '@angular/core';
+import { ErrorStateMatcher } from '@angular/material';
 
 @Injectable({
     providedIn: 'root',
@@ -52,5 +53,15 @@ export class TimeInputValidators {
                 return {'invalidEndMs': {value: endTimeValue.ms}}
             }
         };
+    }
+}
+
+/**
+ * Custom ErrorStateMatcher which returns true (error exists) when the parent form group is invalid and the control has been touched
+ */
+export class ConfirmValidParentMatcher implements ErrorStateMatcher {
+    isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+        const isSubmitted = form && form.submitted;
+        return !!(control && control.invalid && (control.dirty || control.touched || isSubmitted));
     }
 }

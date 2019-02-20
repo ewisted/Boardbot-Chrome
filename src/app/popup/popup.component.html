@@ -11,7 +11,7 @@
           <h3 class="info-h3">Enter clip start time</h3>
           <div class="time-input-section" formGroupName="startTime">
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="startMinutesMax()" min="0" placeholder="Minutes" (keyup)="onStartMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
+              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidStartMinutes')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -20,7 +20,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="startSecondsMax()" min="0" placeholder="Seconds" (keyup)="onStartSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
+              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidStartSeconds') && !timeInput.get('startTime.seconds').hasError('required')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -29,7 +29,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="startMsMax()" min="0" placeholder="Milliseconds" (keyup)="onStartMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
+              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidStartMs') && !timeInput.get('startTime.ms').hasError('required')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -38,11 +38,15 @@
               </mat-error>
             </mat-form-field>
           </div>
-          <mat-divider></mat-divider>
+          <button mat-raised-button class="button-margin" color="accent" (click)="getCurrentTime('startTime')">Get Current Time</button>
+          <div class="divider">
+            <mat-divider></mat-divider>
+          </div>
+          <br>
           <h3 class="info-h3">Enter clip end time</h3>
           <div class="time-input-section" formGroupName="endTime">
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endMinutesMax()" [min]="endMinutesMin()" placeholder="Minutes" (keyup)="onEndMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
+              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidEndMinutes') && !timeInput.get('endTime.minutes').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -51,7 +55,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endSecondsMax()" [min]="endSecondsMin()" placeholder="Seconds" (keyup)="onEndSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
+              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidEndSeconds') && !timeInput.get('endTime.seconds').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -60,7 +64,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endMsMax()" [min]="endMsMin()" placeholder="Milliseconds" (keyup)="onEndMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
+              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
               <mat-error *ngIf="timeInput.hasError('invalidEndMs') && !timeInput.get('endTime.ms').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -69,12 +73,21 @@
               </mat-error>
             </mat-form-field>
           </div>
+          <button mat-raised-button class="button-margin" color="accent" (click)="getCurrentTime('endTime')">Get Current Time</button>
       </form>
     </mat-card-content>
     <mat-card-actions>
-      <section class="button-section">
-        <button mat-raised-button class="button-margin" color="accent">Preview</button>
-        <button mat-raised-button class="button-margin" color="accent">Save</button>
+      <section class="button-section" layout="row" fxLayoutAlign="start center">
+        <button mat-raised-button class="button-margin" color="accent" (click)="previewClip()">Preview</button>
+        <button mat-raised-button class="button-margin" color="accent" (click)="submit()">Save</button>
+        <span flex></span>
+        <div fxLayoutAlign="end center" flex>
+          <form [formGroup]="nameInput">
+            <mat-form-field>
+              <input matInput type="text" placeholder="Clip Name" formControlName="clipName" (blur)="save()">
+            </mat-form-field>
+          </form>
+        </div>
       </section>
     </mat-card-actions>
   </mat-card>
