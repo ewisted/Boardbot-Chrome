@@ -77,11 +77,10 @@
       </form>
     </mat-card-content>
     <mat-card-actions>
-      <section class="button-section" layout="row" fxLayoutAlign="start center">
+      <section class="button-section">
         <button mat-raised-button class="button-margin" color="accent" (click)="previewClip()">Preview</button>
         <button mat-raised-button class="button-margin" color="accent" (click)="submit()">Save</button>
-        <span flex></span>
-        <div fxLayoutAlign="end center" flex>
+        <div>
           <form [formGroup]="nameInput">
             <mat-form-field>
               <input matInput type="text" placeholder="Clip Name" formControlName="clipName" (blur)="save()">

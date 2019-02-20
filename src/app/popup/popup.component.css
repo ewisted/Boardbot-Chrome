@@ -24,8 +24,7 @@
 }
 
 .button-section div:last-child {
-  align-content: right;
-  align-items: right;
+  align-self: right;
 }
 
 .button-margin {
