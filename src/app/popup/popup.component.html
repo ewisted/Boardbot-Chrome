@@ -42,7 +42,7 @@
           <h3 class="info-h3">Enter clip end time</h3>
           <div class="time-input-section" formGroupName="endTime">
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endMinutesMax()" min="0" placeholder="Minutes" (keyup)="onEndMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
+              <input matInput type="number" [max]="endMinutesMax()" [min]="endMinutesMin()" placeholder="Minutes" (keyup)="onEndMinutesInput($event)" (keydown)="onKeyDown($event)" formControlName="minutes">
               <mat-error *ngIf="timeInput.hasError('invalidEndMinutes') && !timeInput.get('endTime.minutes').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -51,7 +51,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endSecondsMax()" min="0" placeholder="Seconds" (keyup)="onEndSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
+              <input matInput type="number" [max]="endSecondsMax()" [min]="endSecondsMin()" placeholder="Seconds" (keyup)="onEndSecondsInput($event)" (keydown)="onKeyDown($event)" formControlName="seconds">
               <mat-error *ngIf="timeInput.hasError('invalidEndSeconds') && !timeInput.get('endTime.seconds').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -60,7 +60,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" [max]="endMsMax()" min="0" placeholder="Milliseconds" (keyup)="onEndMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
+              <input matInput type="number" [max]="endMsMax()" [min]="endMsMin()" placeholder="Milliseconds" (keyup)="onEndMsInput($event)" (keydown)="onKeyDown($event)" formControlName="ms">
               <mat-error *ngIf="timeInput.hasError('invalidEndMs') && !timeInput.get('endTime.ms').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>

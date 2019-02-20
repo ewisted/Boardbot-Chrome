@@ -72,7 +72,7 @@ export class PopupComponent implements OnInit {
   startMinutesMax() {
     var startTimeValue = this.timeInput.get("startTime").value;
     var endTimeValue = this.timeInput.get("endTime").value;
-    if (((startTimeValue.minutes + 1) * 60 + startTimeValue.seconds +  startTimeValue.ms / 1000) <= (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
+    if (((startTimeValue.minutes + 1) * 60 + startTimeValue.seconds +  startTimeValue.ms / 1000) < (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
       // Hardcoded at 10 hours max video length
       return 600;
     }
@@ -84,7 +84,7 @@ export class PopupComponent implements OnInit {
   startSecondsMax() {
     var startTimeValue = this.timeInput.get("startTime").value;
     var endTimeValue = this.timeInput.get("endTime").value;
-    if ((startTimeValue.minutes * 60 + (startTimeValue.seconds + 1) +  startTimeValue.ms / 1000) <= (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
+    if ((startTimeValue.minutes * 60 + (startTimeValue.seconds + 1) +  startTimeValue.ms / 1000) < (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
       return 59;
     }
     else {
@@ -95,7 +95,7 @@ export class PopupComponent implements OnInit {
   startMsMax() {
     var startTimeValue = this.timeInput.get("startTime").value;
     var endTimeValue = this.timeInput.get("endTime").value;
-    if ((startTimeValue.minutes * 60 + startTimeValue.seconds +  (startTimeValue.ms + 1) / 1000) <= (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
+    if ((startTimeValue.minutes * 60 + startTimeValue.seconds +  (startTimeValue.ms + 1) / 1000) < (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000)) {
       return 999;
     }
     else {
@@ -134,6 +134,54 @@ export class PopupComponent implements OnInit {
     }
   }
 
+  endMinutesMin() {
+    // Get the start and end times from their respective form groups
+    var startTimeValue = this.timeInput.get("startTime").value;
+    var endTimeValue = this.timeInput.get("endTime").value;
+    // Calculate the end and start times of clip form in seconds
+    // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
+    var endTime = (endTimeValue.minutes - 1) * 60 + endTimeValue.seconds + (endTimeValue.ms / 1000);
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
+    if (endTime > startTime) {
+      return 0;
+    }
+    else {
+      return endTimeValue.minutes;
+    }
+  }
+
+  endSecondsMin() {
+    // Get the start and end times from their respective form groups
+    var startTimeValue = this.timeInput.get("startTime").value;
+    var endTimeValue = this.timeInput.get("endTime").value;
+    // Calculate the end and start times of clip form in seconds
+    // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
+    var endTime = (endTimeValue.minutes * 60) + (endTimeValue.seconds - 1) + (endTimeValue.ms / 1000);
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
+    if (endTime > startTime) {
+      return 0;
+    }
+    else {
+      return endTimeValue.seconds;
+    }
+  }
+
+  endMsMin() {
+    // Get the start and end times from their respective form groups
+    var startTimeValue = this.timeInput.get("startTime").value;
+    var endTimeValue = this.timeInput.get("endTime").value;
+    // Calculate the end and start times of clip form in seconds
+    // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
+    var endTime = (endTimeValue.minutes * 60) + endTimeValue.seconds + ((endTimeValue.ms - 1) / 1000);
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
+    if (endTime > startTime) {
+      return 0;
+    }
+    else {
+      return endTimeValue.ms;
+    }
+  }
+
   // <summary>
   // These functions serve to track user input and make sure its always a possible clip
   // </summary>
@@ -149,8 +197,9 @@ export class PopupComponent implements OnInit {
     var endTimeValue = this.timeInput.get("endTime").value;
     var startTimeValue = this.timeInput.get("startTime").value;
     // Calculate the end time of the clip in seconds
-    var endTime = (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000);
-    if (value * 60 + startTimeValue.seconds + (startTimeValue.ms / 1000) > endTime) {
+    var endTime = (endTimeValue.minutes * 60) + endTimeValue.seconds + (endTimeValue.ms / 1000);
+    var startTime = (value * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
+    if (startTime >= endTime) {
       // Calculate the highest number of possible minutes to start from
       var maxMinutes = Math.floor((endTime - startTimeValue.seconds - (startTimeValue.ms / 1000)) / 60);
       this.timeInput.controls["startTime"].setValue({minutes: maxMinutes, seconds: startTimeValue.seconds, ms: startTimeValue.ms});
@@ -173,7 +222,7 @@ export class PopupComponent implements OnInit {
     var endTime = (endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000);
     var startTime = startTimeValue.minutes * 60 + value + (startTimeValue.ms / 1000);
     // The clip cannot start after it ends
-    if (startTime > endTime) {
+    if (startTime >= endTime) {
       // Calculate the max amount of seconds allowed by subtracting the other start time input values from the end time
       var maxSeconds = Math.floor(endTime - startTimeValue.minutes * 60 - (startTimeValue.ms / 1000));
       if (maxSeconds / 60 >= 1) {
@@ -200,9 +249,9 @@ export class PopupComponent implements OnInit {
     // Calculate the end and start times of clip form in seconds
     // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
     var endTime = endTimeValue.minutes * 60 + endTimeValue.seconds + endTimeValue.ms / 1000;
-    var startTime = value * 60 + startTimeValue.seconds + startTimeValue.ms / 1000;
+    var startTime = endTimeValue.minutes * 60 + startTimeValue.seconds + value / 1000;
     // The clip cannot start after it ends
-    if (startTime > endTime) {
+    if (startTime >= endTime) {
       // Calculate the max amount of milliseconds allowed by subtracting the other start time input values from the end time
       var maxMs = Math.floor((endTime - startTimeValue.minutes * 60 - startTimeValue.seconds) * 1000);
       // If there's less than a seconds worth of milliseconds from the end time, then we need to set the milliseconds to where the clip ends
@@ -228,11 +277,20 @@ export class PopupComponent implements OnInit {
     // Get the start and end times from their respective form groups
     var endTimeValue = this.timeInput.get("endTime").value;
     var startTimeValue = this.timeInput.get("startTime").value;
+    // Calculate the end and start times of clip form in seconds
+    // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
+    var endTime = (value * 60) + endTimeValue.seconds + (endTimeValue.ms / 1000);
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
     // The clip cannot end after the video ends
-    if (value * 60 + endTimeValue.seconds + endTimeValue.ms / 1000 > this.videoEndTime) {
+    if (endTime > this.videoEndTime) {
       // Calculate the highest number of possible minutes to stop at
       var maxMinutes = Math.floor((this.videoEndTime - endTimeValue.seconds - (endTimeValue.ms / 1000)) / 60);
       this.timeInput.controls["endTime"].setValue({minutes: maxMinutes, seconds: endTimeValue.seconds, ms: endTimeValue.ms});
+      return;
+    }
+    if (endTime < startTime) {
+      var minMinutes = Math.floor(startTime / 60);
+      this.timeInput.controls["endTime"].setValue({minutes: minMinutes, seconds: endTimeValue.seconds, ms: endTimeValue.ms});
       return;
     }
   }
@@ -247,14 +305,23 @@ export class PopupComponent implements OnInit {
     // Get the start and end times from their respective form groups
     var endTimeValue = this.timeInput.get("endTime").value;
     var startTimeValue = this.timeInput.get("startTime").value;
+    // Calculate the end and start times of clip form in seconds
+    // Format: 647.221 = 10 minutes, 47 seconds, and 221 milliseconds
+    var endTime = (endTimeValue.minutes * 60) + value + (endTimeValue.ms / 1000);
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
     // The clip cannot end after the video ends
-    if (endTimeValue.minutes * 60 + value + (endTimeValue.ms / 1000) > this.videoEndTime) {
+    if (endTime > this.videoEndTime) {
       // Calculate the highest number of possible seconds to end the video at
-      var maxSeconds = Math.floor(this.videoEndTime - endTimeValue.minutes * 60 - (endTimeValue.ms / 1000));
+      var maxSeconds = Math.floor(this.videoEndTime - (endTimeValue.minutes * 60) - (endTimeValue.ms / 1000));
       if (maxSeconds / 60 < 1) {
         this.timeInput.controls["endTime"].setValue({minutes: endTimeValue.minutes, seconds: maxSeconds, ms: endTimeValue.ms});
         return;
       }
+    }
+    if ((endTime < startTime) && (startTimeValue.minutes == endTimeValue.minutes)) {
+      var minSeconds = startTimeValue.seconds
+      this.timeInput.controls["endTime"].setValue({minutes: endTimeValue.minutes, seconds: minSeconds, ms: endTimeValue.ms});
+      return;
     }
     // This is so we're not accepting anything greater than or equal to a second as input
     if (value > 59) {
@@ -272,15 +339,22 @@ export class PopupComponent implements OnInit {
     var value = +event.target.value;
     // Get the start and end times from their respective form groups
     var endTimeValue = this.timeInput.get("endTime").value;
+    var endTime = endTimeValue.minutes * 60 + endTimeValue.seconds + (value / 1000);
     var startTimeValue = this.timeInput.get("startTime").value;
+    var startTime = (startTimeValue.minutes * 60) + startTimeValue.seconds + (startTimeValue.ms / 1000);
     // The clip cannot end after the video ends
-    if (endTimeValue.minutes * 60 + endTimeValue.seconds + (value / 1000) > this.videoEndTime) {
+    if (endTime > this.videoEndTime) {
       // Calculate the highest number of milliseconds to end the video at
-      var maxMs = Math.floor((this.videoEndTime - endTimeValue.minutes * 60 - endTimeValue.seconds) * 1000);
+      var maxMs = Math.round((this.videoEndTime - endTimeValue.minutes * 60 - endTimeValue.seconds) * 1000);
       if (maxMs / 1000 < 1) {
         this.timeInput.controls["endTime"].setValue({minutes: endTimeValue.minutes, seconds: endTimeValue.seconds, ms: maxMs});
         return;
       }
+    }
+    if ((endTime < startTime) && (startTimeValue.minutes == endTimeValue.minutes) && (startTimeValue.seconds == endTimeValue.seconds)) {
+      var minMs = (startTimeValue.ms == 999) ? 999 : startTimeValue.ms + 1;
+      this.timeInput.controls["endTime"].setValue({minutes: endTimeValue.minutes, seconds: endTimeValue.seconds, ms: minMs});
+      return;
     }
     // This is so we're not accepting anything greater than or equal to a millisecond as input
     if (value > 999) {
