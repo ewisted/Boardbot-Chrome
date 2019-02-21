@@ -1,9 +1,12 @@
 var video, clipTimer;
 
+console.log('Boardbot: Content script injected');
+
 // Main function for injecting our ui
 var videoAvailable = setInterval(() => {
     video = document.getElementsByClassName("html5-main-video")[0];
     if (video != null) {
+        console.log("Boardbot: Video found");
         clearInterval(videoAvailable);
     }
 }, 100);

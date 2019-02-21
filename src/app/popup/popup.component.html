@@ -11,7 +11,7 @@
           <h3 class="info-h3">Enter clip start time</h3>
           <div class="time-input-section" formGroupName="startTime">
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidStartMinutes')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -20,7 +20,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidStartSeconds') && !timeInput.get('startTime.seconds').hasError('required')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -29,7 +29,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidStartMs') && !timeInput.get('startTime.ms').hasError('required')">
                 Start time cannot begin after the clip end time
               </mat-error>
@@ -46,7 +46,7 @@
           <h3 class="info-h3">Enter clip end time</h3>
           <div class="time-input-section" formGroupName="endTime">
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidEndMinutes') && !timeInput.get('endTime.minutes').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -55,7 +55,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidEndSeconds') && !timeInput.get('endTime.seconds').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -64,7 +64,7 @@
               </mat-error>
             </mat-form-field>
             <mat-form-field class="time-input-margin">
-              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()">
+              <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" [errorStateMatcher]="confirmValidParentMatcher" (blur)="save()" [disabled]="disabled">
               <mat-error *ngIf="timeInput.hasError('invalidEndMs') && !timeInput.get('endTime.ms').hasError('required')">
                 Clip end time cannot begin after the video end time
               </mat-error>
@@ -77,18 +77,17 @@
       </form>
     </mat-card-content>
     <mat-card-actions>
-      <section class="button-section" layout="row" fxLayoutAlign="start center">
-        <button mat-raised-button class="button-margin" color="accent" (click)="previewClip()">Preview</button>
-        <button mat-raised-button class="button-margin" color="accent" (click)="submit()">Save</button>
-        <span flex></span>
-        <div fxLayoutAlign="end center" flex>
+      <section class="button-section">
+        <button mat-raised-button class="button-margin" color="accent" (click)="previewClip()" [disabled]="disabled">Preview</button>
+        <button mat-raised-button class="button-margin" color="accent" (click)="submit()" [disabled]="disabled">Save</button>
+      </section>
+      <div>
           <form [formGroup]="nameInput">
             <mat-form-field>
-              <input matInput type="text" placeholder="Clip Name" formControlName="clipName" (blur)="save()">
+              <input matInput type="text" placeholder="Clip Name" formControlName="clipName" (blur)="save()" [disabled]="disabled">
             </mat-form-field>
           </form>
         </div>
-      </section>
     </mat-card-actions>
   </mat-card>
-  <script src="popup.js"></script>
+  <!-- <script src="popup.js"></script> -->
