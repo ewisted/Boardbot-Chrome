@@ -8,6 +8,7 @@ import { TimeInputValidators, ConfirmValidParentMatcher } from './popup.validato
   styleUrls: ['./popup.component.css']
 })
 export class PopupComponent implements OnInit {
+  public disabled;
   public videoEndTime;
   public videoId;
   public port: chrome.runtime.Port;
@@ -26,11 +27,17 @@ export class PopupComponent implements OnInit {
     chrome.tabs.query({active: true, currentWindow: true}, tabs => {
       // Esablish a persistant connection to the content script
       this.port = chrome.tabs.connect(tabs[0].id);
-      console.log("Popup connected to content script");
-      // Listener for all content script replys
-      this.setupReplyListener();
-      // Get video info
-      this.port.postMessage({getVideoInfo: true});
+      if (this.port) {
+        this.disabled = false;
+        console.log("Popup connected to content script");
+        // Listener for all content script replys
+        this.setupReplyListener();
+        // Get video info
+        this.port.postMessage({getVideoInfo: true});
+      }
+      else {
+        this.disabled = true;
+      }
     });
   }
 
