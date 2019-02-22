@@ -11,7 +11,8 @@
  This project uses [gulp](https://gulpjs.com/) to build the components of the application into a javascript chrome extension
 
  1. Navigate to the project directory and open of a command prompt window
- 2. run `gulp`
+ 2. run `npm install`
+ 3. After all npm packages have been installed, run `gulp`
  
  - You will see gulp compile two different builds, one for the Angular app and one for the content script typescript project
 

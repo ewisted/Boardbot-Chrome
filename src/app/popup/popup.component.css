@@ -1,3 +1,7 @@
+.divider {
+  margin: 10px;
+}
+
 .info-h3 {
   margin: 10px;
 }
@@ -19,6 +23,16 @@
   align-items: center;
 }
 
+.button-section div:last-child {
+  align-self: right;
+}
+
 .button-margin {
   margin-left: 10px;
+}
+
+.name-section {
+  display: flex;
+  align-content: right;
+  align-items: right;
 }
