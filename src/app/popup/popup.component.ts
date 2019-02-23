@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { PopupInputBuilder } from './popup.input-builder'
 import { MatSnackBar } from '@angular/material';
+import { isNullOrUndefined } from 'util';
 
 @Component({
   selector: 'app-popup',
@@ -9,17 +10,34 @@ import { MatSnackBar } from '@angular/material';
   styleUrls: ['./popup.component.css']
 })
 export class PopupComponent implements OnInit {
-  public videoEndTime;
-  public previewing;
-  public videoId;
+  /**
+   * End time of the video in seconds
+   */
+  public videoEndTime: number;
+  /**
+   * Property video preview button is bound to, determines if the user is previewing or not
+   */
+  public previewing: boolean;
+  /**
+   * The current tabs youtube video id, if it exists
+   */
+  public videoId: string;
+  /**
+   * Port object used to communicate with the youtube script
+   */
   public port: chrome.runtime.Port;
-  public hasSavedStartInput;
-  public hasSavedEndInput;
+  /**
+   * Builds and controls the inputs for start and end time
+   */
   public inputBuilder = new PopupInputBuilder(this.fb);
+  /**
+   * If the clip maker should be disabled
+   * Defaults to true but is updated if a content script is loaded
+   */
   public disabled = true;
 
   constructor(private fb: FormBuilder, private snackBar: MatSnackBar) { }
-  
+
   ngOnInit() { 
     // Connect to the currently open window
     chrome.tabs.query({active: true, currentWindow: true}, tabs => {
@@ -39,27 +57,29 @@ export class PopupComponent implements OnInit {
     this.port.onMessage.addListener(msg => {
       // Response for video duration
       if (msg.videoInfo) {
-        this.videoEndTime = msg.videoInfo.length;
-        this.videoId = msg.videoInfo.videoId;
         if (msg.recoverInfo) { 
           this.inputBuilder = new PopupInputBuilder(this.fb, msg.recoverInfo.startSeconds, msg.recoverInfo.endSeconds, msg.recoverInfo.clipName);
-          this.previewing = msg.recoverInfo.previewing;
+          this.setPreviewingState(msg.recoverInfo.previewing);
         }
         else {
-          this.inputBuilder = new PopupInputBuilder(this.fb, {minutes: 0, seconds: 0, ms: 0}, this.videoEndTime);
+          this.setPreviewingState(false);
+          this.inputBuilder = new PopupInputBuilder(this.fb, {minutes: 0, seconds: 0, ms: 0}, msg.videoInfo.videoEndTime);
         }
         this.inputBuilder.enable();
         this.disabled = false;
+        this.videoEndTime = msg.videoInfo.length;
+        this.videoId = msg.videoInfo.videoId;
 
         // Really hack-y way of getting the elements to refresh when the popup is loaded
         var el = document.getElementById("startMinutes");
         var evObj = document.createEvent("Events");
         evObj.initEvent("click", true, false);
+        evObj.initEvent("blur", true, false);
         el.dispatchEvent(evObj);
       }
 
       if (msg.previewing != null) {
-        this.previewing = msg.previewing;
+        this.setPreviewingState(msg.previewing);
       }
 
       if (msg.currentTime && msg.control) {
@@ -107,6 +127,11 @@ export class PopupComponent implements OnInit {
     });
   }
 
+  getEndTime() {
+    this.inputBuilder.setTime("endTime", this.videoEndTime);
+    return;
+  }
+
   prependZero(n) {
     return ("" + n).slice(-2);
   }
@@ -142,6 +167,18 @@ export class PopupComponent implements OnInit {
     // Send bot a message to play at the start time
     this.port.postMessage({playClip: clipTimeMs, startSeconds: startSeconds});
     return;
+  }
+
+  // TODO: This method doesn't really need to exist, need to figure out why DOM elements aren't updating on variable change
+  setPreviewingState(previewing: boolean) {
+    console.log("Previewing: " + previewing);
+    this.previewing = previewing;
+    // Really hack-y way of getting the preview button color to refresh on variable change. Idk why it only updates on blur or click
+    var el = document.getElementById("startMinutes");
+    var evObj = document.createEvent("Events");
+    evObj.initEvent("click", true, false);
+    evObj.initEvent("blur", true, false);
+    el.dispatchEvent(evObj);
   }
 
   getCurrentTime(control: string) {
