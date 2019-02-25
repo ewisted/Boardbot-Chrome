@@ -22,6 +22,8 @@
         <mat-divider></mat-divider>
       </div>
       <br>
+      <app-time-input (formReady)="formInitialized('starttime', $event)"></app-time-input>
+      <app-time-input (formReady)="formInitialized('endtime', $event)"></app-time-input>
       <h3 class="info-h3">Enter clip end time</h3>
       <div class="time-input-section" formGroupName="endTime">
         <mat-form-field class="time-input-margin">
@@ -52,3 +54,9 @@
   </mat-card-actions>
 </mat-card>
 <ng-template #no_video>No video found</ng-template>
+
+<h2 class='mat-h2'>Form Value</h2>
+  <pre>
+    {{finalInputForm.value | json}}
+  </pre>
+</div>

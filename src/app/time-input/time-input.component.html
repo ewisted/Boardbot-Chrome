@@ -1,0 +1,13 @@
+<h3 class="info-h3">Enter clip end time</h3>
+<div class="time-input-section" formGroupName="endTime">
+  <mat-form-field class="time-input-margin">
+    <input matInput type="number" min="0" placeholder="Minutes" (keydown)="onKeyDown($event)" formControlName="minutes" (blur)="save()">
+  </mat-form-field>
+  <mat-form-field class="time-input-margin">
+    <input matInput type="number" max="59" min="0" placeholder="Seconds" (keydown)="onKeyDown($event)" formControlName="seconds" (blur)="save()">
+  </mat-form-field>
+  <mat-form-field class="time-input-margin">
+    <input matInput type="number" max="999" min="0" placeholder="Milliseconds" (keydown)="onKeyDown($event)" formControlName="ms" (blur)="save()">
+  </mat-form-field>
+</div>
+<button mat-raised-button class="button-margin" color="accent" (click)="getCurrentTime('endTime')" [disabled]="disabled">Get Current Time</button>

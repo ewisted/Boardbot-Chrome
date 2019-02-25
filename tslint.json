@@ -3,6 +3,10 @@
     "codelyzer"
   ],
   "rules": {
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
     "arrow-return-shorthand": true,
     "callable-types": true,
     "class-name": true,

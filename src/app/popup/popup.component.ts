@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { PopupInputBuilder } from './popup.input-builder'
 import { MatSnackBar } from '@angular/material';
 
@@ -9,6 +9,8 @@ import { MatSnackBar } from '@angular/material';
   styleUrls: ['./popup.component.css']
 })
 export class PopupComponent implements OnInit {
+
+  public finalInputForm: FormGroup;
   public videoEndTime;
   public previewing;
   public videoId;
@@ -49,6 +51,7 @@ export class PopupComponent implements OnInit {
           this.inputBuilder = new PopupInputBuilder(this.fb, {minutes: 0, seconds: 0, ms: 0}, this.videoEndTime);
         }
         this.inputBuilder.enable();
+        
         this.disabled = false;
 
         // Really hack-y way of getting the elements to refresh when the popup is loaded
@@ -158,5 +161,9 @@ export class PopupComponent implements OnInit {
       e.preventDefault();
     }
     return;
+  }
+
+  formInitialized(name: string, form: FormGroup) {
+    this.finalInputForm.setControl(name, form);
   }
 }

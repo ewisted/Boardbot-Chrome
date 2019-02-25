@@ -9,13 +9,15 @@ import { PopupComponent } from './popup/popup.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ExtensionMaterialModule } from './extension-material-module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TimeInputComponent } from './time-input/time-input.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomepageComponent,
     EventPageComponent,
-    PopupComponent
+    PopupComponent,
+    TimeInputComponent
   ],
   imports: [
     BrowserModule,

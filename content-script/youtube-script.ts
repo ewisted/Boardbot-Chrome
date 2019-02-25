@@ -1,6 +1,7 @@
-// import { TimeInput } from '../common/models/TimeInput'
-var video, clipTimer, startSeconds, endSeconds, clipName, previewing;
 
+import {ChromeStorageRequestModel} from 'src/app/ChromeStorageRequestModel';
+import {TestModule} from './TestModule';
+var video, clipTimer, startSeconds, endSeconds, clipName, previewing;
 console.log('Boardbot: Content script injected');
 
 // Main function for injecting our ui
@@ -16,7 +17,25 @@ var videoAvailable = setInterval(() => {
 // Recieves messages from popup.js or background.js
 chrome.runtime.onConnect.addListener(port => {
     console.log("Boardbot: Content script connected on listening port");
-    port.onMessage.addListener(msg => {
+
+    port.onMessage.addListener(msg  => {
+        var test = TestModule.Test.TestProp;
+         var message = msg as ChromeStorageRequestModel;
+        switch(message.action) {
+            // case test.ChromeStorageActionTypes.GetVideo: {
+
+            // }
+            // case ChromeStorageActionEnum.ChromeStorageActionEnum.ReturnVideo: {
+                
+            // }
+            // case ChromeStorageActionEnum.ChromeStorageActionEnum.SetPreview: {
+                
+            // }
+            // case ChromeStorageActionEnum.ChromeStorageActionEnum.StoreClipToCache: {
+                
+            // }
+        };
+
         if (msg.getVideoInfo) {
             var videoId = document.location.search.split("?v=")[1].substr(0, 11);
             if (startSeconds || endSeconds || clipName || previewing) {
