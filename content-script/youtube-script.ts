@@ -1,4 +1,9 @@
 // import { TimeInput } from '../common/models/TimeInput'
+import { GetCurrentTimeRequest, StartPreviewingRequest, SaveRequest } from "./request-messages";
+import { Message } from './message';
+import { ActionTypes } from './action-types';
+import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse } from './response-messages';
+
 var video, clipTimer, startSeconds, endSeconds, clipName, previewing;
 
 console.log('Boardbot: Content script injected');
@@ -17,48 +22,41 @@ var videoAvailable = setInterval(() => {
 chrome.runtime.onConnect.addListener(port => {
     console.log("Boardbot: Content script connected on listening port");
     port.onMessage.addListener(msg => {
-        if (msg.getVideoInfo) {
-            var videoId = document.location.search.split("?v=")[1].substr(0, 11);
-            if (startSeconds || endSeconds || clipName || previewing) {
-                port.postMessage({
-                    videoInfo: {
-                        length: video.duration, 
-                        videoId: videoId
-                    }, 
-                    recoverInfo: {
-                        startSeconds: startSeconds, 
-                        endSeconds: endSeconds, 
-                        clipName: clipName, 
-                        previewing: previewing
-                    }
-                });
-            }
-            else {
-                port.postMessage({videoInfo: {length: video.duration, videoId: videoId}});
-            }
-        }
-        if (typeof msg.playClip === "number" && typeof msg.startSeconds === "number") {
-            video.currentTime = msg.startSeconds;
-            video.play();
-            previewing = true;
-            port.postMessage({previewing: true});
-            clipTimer = setInterval(() => {
-                video.currentTime = msg.startSeconds;
-            }, msg.playClip);
-        }
-        if (msg.stopClip == true) {
-            clearInterval(clipTimer);
-            video.pause();
-            previewing = false;
-            port.postMessage({previewing: false});
-        }
-        if (msg.getCurrentTime) {
-            port.postMessage({currentTime: video.currentTime, control: msg.getCurrentTime});
-        }
-        if (msg.save) {
-            startSeconds = msg.startSeconds;
-            endSeconds = msg.endSeconds;
-            clipName = msg.clipName;
-        }
+      console.log(msg);
+      switch (msg.ActionType) {
+
+        case ActionTypes.GetVideo:
+          var videoId = document.location.search.split("?v=")[1].substr(0, 11);
+          port.postMessage(new GetVideoResponse(video.duration, videoId, startSeconds, endSeconds, clipName, previewing));
+          break;
+
+        case ActionTypes.StartPreviewing:
+          video.currentTime = msg.StartSeconds;
+          video.play();
+          previewing = true;
+          port.postMessage(new PreviewingResponse(previewing));
+
+          clipTimer = setInterval(() => {
+            video.currentTime = msg.StartSeconds;
+          }, msg.ClipTimeMs);
+          break;
+
+        case ActionTypes.StopPreviewing:
+          clearInterval(clipTimer);
+          video.pause();
+          previewing = false;
+          port.postMessage(new PreviewingResponse(previewing));
+          break;
+
+        case ActionTypes.GetCurrentTime:
+          port.postMessage(new GetCurrentTimeResponse(video.currentTime, msg.Control));
+          break;
+
+        case ActionTypes.Save:
+          startSeconds = msg.StartSeconds;
+          endSeconds = msg.EndSeconds;
+          clipName = msg.ClipName;
+          break;
+      }
     });
 });

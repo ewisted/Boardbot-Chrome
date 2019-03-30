@@ -3,6 +3,9 @@ import { FormBuilder } from '@angular/forms';
 import { PopupInputBuilder } from './popup.input-builder'
 import { MatSnackBar } from '@angular/material';
 import { isNullOrUndefined } from 'util';
+import { ActionTypes } from 'content-script/action-types';
+import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse } from 'content-script/response-messages';
+import { SaveRequest, StopPreviewingRequest, StartPreviewingRequest, GetCurrentTimeRequest, GetVideoRequest } from 'content-script/request-messages';
 
 @Component({
   selector: 'app-popup',
@@ -48,43 +51,40 @@ export class PopupComponent implements OnInit {
         // Listener for all content script replys
         this.setupReplyListener();
         // Get video info
-        this.port.postMessage({getVideoInfo: true});
+        this.port.postMessage(new GetVideoRequest());
       }
     });
   }
 
   setupReplyListener() {
     this.port.onMessage.addListener(msg => {
-      // Response for video duration
-      if (msg.videoInfo) {
-        if (msg.recoverInfo) { 
-          this.inputBuilder = new PopupInputBuilder(this.fb, msg.recoverInfo.startSeconds, msg.recoverInfo.endSeconds, msg.recoverInfo.clipName);
-          this.setPreviewingState(msg.recoverInfo.previewing);
-        }
-        else {
-          this.setPreviewingState(false);
-          this.inputBuilder = new PopupInputBuilder(this.fb, {minutes: 0, seconds: 0, ms: 0}, msg.videoInfo.videoEndTime);
-        }
-        this.inputBuilder.enable();
-        this.disabled = false;
-        this.videoEndTime = msg.videoInfo.length;
-        this.videoId = msg.videoInfo.videoId;
+      console.log(msg);
+      switch (msg.ActionType) {
 
-        // Really hack-y way of getting the elements to refresh when the popup is loaded
-        var el = document.getElementById("startMinutes");
-        var evObj = document.createEvent("Events");
-        evObj.initEvent("click", true, false);
-        evObj.initEvent("blur", true, false);
-        el.dispatchEvent(evObj);
-      }
+        case ActionTypes.GetVideo:
+          this.inputBuilder = new PopupInputBuilder(this.fb, msg.StartSeconds, msg.EndSeconds, msg.ClipName)
+          this.setPreviewingState(msg.Previewing);
+          this.inputBuilder.enable();
+          this.disabled = false;
+          this.videoEndTime = msg.Duration;
+          this.videoId = msg.VideoId;
 
-      if (msg.previewing != null) {
-        this.setPreviewingState(msg.previewing);
-      }
+          // Really hack-y way of getting the elements to refresh when the popup is loaded
+          var el = document.getElementById("startMinutes");
+          var evObj = document.createEvent("Events");
+          evObj.initEvent("click", true, false);
+          evObj.initEvent("blur", true, false);
+          el.dispatchEvent(evObj);
+          break;
 
-      if (msg.currentTime && msg.control) {
-        this.inputBuilder.setTime(msg.control, msg.currentTime);
-        this.save();
+        case ActionTypes.PreviewingChanged:
+          this.setPreviewingState(msg.Previewing);
+          break;
+
+        case ActionTypes.GetCurrentTime:
+          this.inputBuilder.setTime(msg.Control, msg.CurrentTime);
+          this.save();
+          break;
       }
     });
   }
@@ -142,12 +142,12 @@ export class PopupComponent implements OnInit {
     var endSeconds = this.inputBuilder.getSeconds("endTime");
     var clipName = this.inputBuilder.getClipName();
     
-    this.port.postMessage({save: true, startSeconds: startSeconds, endSeconds: endSeconds, clipName: clipName});
+    this.port.postMessage(new SaveRequest(startSeconds, endSeconds, clipName));
   }
 
   previewClip() {
     if (this.previewing) {
-      this.port.postMessage({stopClip: true});
+      this.port.postMessage(new StopPreviewingRequest());
       return;
     }
     if (!this.inputBuilder.isStartTimeValid()) {
@@ -165,7 +165,7 @@ export class PopupComponent implements OnInit {
     var clipTimeMs = (endSeconds - startSeconds) * 1000;
 
     // Send bot a message to play at the start time
-    this.port.postMessage({playClip: clipTimeMs, startSeconds: startSeconds});
+    this.port.postMessage(new StartPreviewingRequest(clipTimeMs, startSeconds));
     return;
   }
 
@@ -182,7 +182,7 @@ export class PopupComponent implements OnInit {
   }
 
   getCurrentTime(control: string) {
-    this.port.postMessage({getCurrentTime: control});
+    this.port.postMessage(new GetCurrentTimeRequest(control));
     return;
   }
 
