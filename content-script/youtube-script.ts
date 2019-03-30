@@ -22,7 +22,6 @@ var videoAvailable = setInterval(() => {
 chrome.runtime.onConnect.addListener(port => {
     console.log("Boardbot: Content script connected on listening port");
     port.onMessage.addListener(msg => {
-      console.log(msg);
       switch (msg.ActionType) {
 
         case ActionTypes.GetVideo:

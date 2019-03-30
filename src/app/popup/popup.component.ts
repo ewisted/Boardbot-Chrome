@@ -58,7 +58,6 @@ export class PopupComponent implements OnInit {
 
   setupReplyListener() {
     this.port.onMessage.addListener(msg => {
-      console.log(msg);
       switch (msg.ActionType) {
 
         case ActionTypes.GetVideo:
@@ -105,12 +104,14 @@ export class PopupComponent implements OnInit {
     }
     var startTimeValue = this.inputBuilder.getValue("startTime");
     var endTimeValue = this.inputBuilder.getValue("endTime");
-    var startMinutes = this.prependZero(startTimeValue.minutes);
-    var startSeconds = this.prependZero(startTimeValue.seconds);
-    var startTimeString = startMinutes + ":" + startSeconds + "." + startTimeValue.ms;
-    var endMinutes = this.prependZero(endTimeValue.minutes);
-    var endSeconds = this.prependZero(endTimeValue.seconds);
-    var endTimeString = endMinutes + ":" + endSeconds + "." + endTimeValue.ms;
+    var startMinutes = this.prependZero(startTimeValue.minutes, false);
+    var startSeconds = this.prependZero(startTimeValue.seconds, false);
+    var startMs = this.prependZero(startTimeValue.ms, true);
+    var startTimeString = startMinutes + ":" + startSeconds + "." + startMs;
+    var endMinutes = this.prependZero(endTimeValue.minutes, false);
+    var endSeconds = this.prependZero(endTimeValue.seconds, false);
+    var endMs = this.prependZero(endTimeValue.ms, true);
+    var endTimeString = endMinutes + ":" + endSeconds + "." + endMs;
     clipName = clipName.trim().replace(/\s+/g, '-').toLowerCase();
 
     var commandString = "@Boardbot add-clip " + clipName + " " + this.videoId + " " + startTimeString + " " + endTimeString;
@@ -132,8 +133,14 @@ export class PopupComponent implements OnInit {
     return;
   }
 
-  prependZero(n) {
-    return ("" + n).slice(-2);
+  prependZero(n, isMs: boolean) {
+    var str = ("" + n);
+    if (n < 100 && isMs) {
+      str = "0" + str;
+    }
+    if (n < 10) {
+      str = "0" + str;
+    }
   }
 
   save() {
@@ -171,7 +178,6 @@ export class PopupComponent implements OnInit {
 
   // TODO: This method doesn't really need to exist, need to figure out why DOM elements aren't updating on variable change
   setPreviewingState(previewing: boolean) {
-    console.log("Previewing: " + previewing);
     this.previewing = previewing;
     // Really hack-y way of getting the preview button color to refresh on variable change. Idk why it only updates on blur or click
     var el = document.getElementById("startMinutes");
