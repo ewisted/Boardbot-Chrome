@@ -4,5 +4,6 @@ export enum ActionTypes {
     StartPreviewing,
     StopPreviewing,
     Save,
-    PreviewingChanged
+    PreviewingChanged,
+    PreviewingState
 }

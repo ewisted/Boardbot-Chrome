@@ -46,7 +46,6 @@ export class PopupComponent implements OnInit {
   public progressTracker;
 
   public clipTimer: Observable<number>;
-
   private timerSubscription: Subscription;
 
   constructor(private fb: FormBuilder, private snackBar: MatSnackBar) { }
@@ -79,23 +78,23 @@ export class PopupComponent implements OnInit {
           this.setPreviewingState(msg.Previewing);
           break;
 
+        case ActionTypes.PreviewingState:
+          this.clipTimer = timer(0, 33);
+          this.timerSubscription = this.clipTimer.subscribe(x => {
+            this.progressPercent = ((x * 33 + msg.MsIntoClip) / msg.ClipTimeMs) * 100;
+            this.refreshDOM();
+          });
+          setTimeout(() => {
+            this.timerSubscription.unsubscribe();
+            this.clipTimer = null;
+            this.trackPreviewProgress(msg.ClipTimeMs);
+          }, msg.ClipTimeMs - msg.MsIntoClip);
+          break;
+
         case ActionTypes.PreviewingChanged:
           this.setPreviewingState(msg.Previewing);
           if (msg.Previewing && msg.ClipTimeMs != null) {
-            var msBetweenUpdates = 33;
-            this.clipTimer = timer(0, msBetweenUpdates);
-            this.timerSubscription = this.clipTimer.subscribe(x => {
-              this.progressPercent = (x * msBetweenUpdates / msg.ClipTimeMs) * 100;
-              this.refreshDOM();
-            });
-            this.progressTracker = setInterval(() => {
-              this.timerSubscription.unsubscribe();
-              this.clipTimer = timer(0, msBetweenUpdates);
-              this.timerSubscription = this.clipTimer.subscribe(x => {
-                this.progressPercent = (x * msBetweenUpdates / msg.ClipTimeMs) * 100;
-                this.refreshDOM();
-              });
-            }, msg.ClipTimeMs);
+            this.trackPreviewProgress(msg.ClipTimeMs);
           }
           else {
             clearInterval(this.progressTracker);
@@ -110,6 +109,27 @@ export class PopupComponent implements OnInit {
           break;
       }
     });
+  }
+
+  trackPreviewProgress(clipTimeMs: number) {
+    // Start a timer that ticks every 33ms (30fps)
+    this.clipTimer = timer(0, 33);
+    // Every tick, the timer increments x by 1
+    this.timerSubscription = this.clipTimer.subscribe(x => {
+      // Multiplying x by the tick interval gives us elapsed ms, which allows us to calculate percentage
+      this.progressPercent = (x * 33 / clipTimeMs) * 100;
+      this.refreshDOM();
+    });
+    // This just repeats the above logic using the clip time as the interval
+    this.progressTracker = setInterval(() => {
+      this.timerSubscription.unsubscribe();
+      this.clipTimer = timer(0, 33);
+      this.timerSubscription = this.clipTimer.subscribe(x => {
+        this.progressPercent = (x * 33 / clipTimeMs) * 100;
+        this.refreshDOM();
+      });
+    }, clipTimeMs);
+    return;
   }
 
   submit() {
@@ -177,7 +197,7 @@ export class PopupComponent implements OnInit {
     var clipTimeMs = (endSeconds - startSeconds) * 1000;
 
     // Send bot a message to play at the start time
-    this.port.postMessage(new StartPreviewingRequest(clipTimeMs, startSeconds));
+    this.port.postMessage(new StartPreviewingRequest(clipTimeMs, startSeconds, endSeconds));
     return;
   }
 

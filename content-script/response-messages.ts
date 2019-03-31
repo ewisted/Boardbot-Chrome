@@ -44,3 +44,15 @@ export class PreviewingResponse implements Message {
         this.ClipTimeMs = cliptimeMs;
     }
 }
+
+export class PreviewingStateResponse implements Message {
+  ActionType: ActionTypes;
+  ClipTimeMs: number;
+  MsIntoClip: number;
+
+  constructor(clipTimeMs: number, msIntoClip: number) {
+    this.ActionType = ActionTypes.PreviewingState;
+    this.ClipTimeMs = clipTimeMs;
+    this.MsIntoClip = msIntoClip;
+  }
+}

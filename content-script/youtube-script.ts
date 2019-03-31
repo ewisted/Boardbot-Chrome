@@ -2,9 +2,9 @@
 import { GetCurrentTimeRequest, StartPreviewingRequest, SaveRequest } from "./request-messages";
 import { Message } from './message';
 import { ActionTypes } from './action-types';
-import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse } from './response-messages';
+import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse, PreviewingStateResponse } from './response-messages';
 
-var video, clipTimer, startSeconds, endSeconds, clipName, previewing;
+var video, clipTimer, startSeconds, endSeconds, clipName, previewing, clipTimeMs;
 
 console.log('Boardbot: Content script injected');
 
@@ -27,16 +27,23 @@ chrome.runtime.onConnect.addListener(port => {
         case ActionTypes.GetVideo:
           var videoId = document.location.search.split("?v=")[1].substr(0, 11);
           port.postMessage(new GetVideoResponse(video.duration, videoId, startSeconds, endSeconds, clipName, previewing));
+          if (previewing) {
+            var msIntoClip = (video.currentTime - startSeconds) * 1000;
+            port.postMessage(new PreviewingStateResponse(clipTimeMs, msIntoClip));
+          }
           break;
 
         case ActionTypes.StartPreviewing:
-          video.currentTime = msg.StartSeconds;
+          startSeconds = msg.StartSeconds;
+          endSeconds = msg.EndSeconds;
+          clipTimeMs = msg.ClipTimeMs;
+          video.currentTime = startSeconds;
           video.play();
           previewing = true;
           port.postMessage(new PreviewingResponse(previewing, msg.ClipTimeMs));
 
           clipTimer = setInterval(() => {
-            video.currentTime = msg.StartSeconds;
+            video.currentTime = startSeconds;
           }, msg.ClipTimeMs);
           break;
 

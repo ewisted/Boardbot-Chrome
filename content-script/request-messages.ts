@@ -13,11 +13,13 @@ export class StartPreviewingRequest implements Message {
     ActionType: ActionTypes;
     ClipTimeMs: number;
     StartSeconds: number;
+    EndSeconds: number;
 
-    constructor(clipTimeMs: number, startSeconds: number) {
+    constructor(clipTimeMs: number, startSeconds: number, endSeconds: number) {
         this.ActionType = ActionTypes.StartPreviewing;
         this.ClipTimeMs = clipTimeMs;
         this.StartSeconds = startSeconds;
+        this.EndSeconds = endSeconds;
     }
 }
 
