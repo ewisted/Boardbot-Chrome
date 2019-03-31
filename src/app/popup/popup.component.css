@@ -36,3 +36,14 @@
   align-content: right;
   align-items: right;
 }
+
+.preview-tracker {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+}
+
+.progress-bar {
+  margin: 0 10px;
+}

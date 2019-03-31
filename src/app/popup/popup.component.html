@@ -52,6 +52,9 @@
         </form>
       </div>
     </section>
+    <section class="preview-tracker">
+      <mat-progress-bar class="progress-bar" [color]="primary" [mode]="determinate" [value]="progressPercent"></mat-progress-bar>
+    </section>
   </mat-card-actions>
 </mat-card>
 <ng-template #no_video>No video found</ng-template>

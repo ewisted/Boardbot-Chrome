@@ -4,8 +4,10 @@ import { PopupInputBuilder } from './popup.input-builder'
 import { MatSnackBar } from '@angular/material';
 import { isNullOrUndefined } from 'util';
 import { ActionTypes } from 'content-script/action-types';
+import { CommandStringBuilder } from './command-string-builder';
 import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse } from 'content-script/response-messages';
 import { SaveRequest, StopPreviewingRequest, StartPreviewingRequest, GetCurrentTimeRequest, GetVideoRequest } from 'content-script/request-messages';
+import { timer, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-popup',
@@ -39,6 +41,14 @@ export class PopupComponent implements OnInit {
    */
   public disabled = true;
 
+  public progressPercent: number;
+
+  public progressTracker;
+
+  public clipTimer: Observable<number>;
+
+  private timerSubscription: Subscription;
+
   constructor(private fb: FormBuilder, private snackBar: MatSnackBar) { }
 
   ngOnInit() { 
@@ -61,23 +71,37 @@ export class PopupComponent implements OnInit {
       switch (msg.ActionType) {
 
         case ActionTypes.GetVideo:
-          this.inputBuilder = new PopupInputBuilder(this.fb, msg.StartSeconds, msg.EndSeconds, msg.ClipName)
-          this.setPreviewingState(msg.Previewing);
-          this.inputBuilder.enable();
           this.disabled = false;
+          this.inputBuilder = new PopupInputBuilder(this.fb, msg.StartSeconds, msg.EndSeconds, msg.ClipName)
+          this.inputBuilder.enable();
           this.videoEndTime = msg.Duration;
           this.videoId = msg.VideoId;
-
-          // Really hack-y way of getting the elements to refresh when the popup is loaded
-          var el = document.getElementById("startMinutes");
-          var evObj = document.createEvent("Events");
-          evObj.initEvent("click", true, false);
-          evObj.initEvent("blur", true, false);
-          el.dispatchEvent(evObj);
+          this.setPreviewingState(msg.Previewing);
           break;
 
         case ActionTypes.PreviewingChanged:
           this.setPreviewingState(msg.Previewing);
+          if (msg.Previewing && msg.ClipTimeMs != null) {
+            var msBetweenUpdates = 33;
+            this.clipTimer = timer(0, msBetweenUpdates);
+            this.timerSubscription = this.clipTimer.subscribe(x => {
+              this.progressPercent = (x * msBetweenUpdates / msg.ClipTimeMs) * 100;
+              this.refreshDOM();
+            });
+            this.progressTracker = setInterval(() => {
+              this.timerSubscription.unsubscribe();
+              this.clipTimer = timer(0, msBetweenUpdates);
+              this.timerSubscription = this.clipTimer.subscribe(x => {
+                this.progressPercent = (x * msBetweenUpdates / msg.ClipTimeMs) * 100;
+                this.refreshDOM();
+              });
+            }, msg.ClipTimeMs);
+          }
+          else {
+            clearInterval(this.progressTracker);
+            this.timerSubscription.unsubscribe();
+            this.clipTimer = null;
+          }
           break;
 
         case ActionTypes.GetCurrentTime:
@@ -89,35 +113,31 @@ export class PopupComponent implements OnInit {
   }
 
   submit() {
+    // If clip name is empty, open a snackbar with error message
     var clipName: string = this.inputBuilder.getClipName();
     if (!clipName) {
       this.snackBar.open("No clip name specified", "Close", {duration: 3000})
       return;
     }
+    // If the start time is invalid, open a snackbar with error message
     if (!this.inputBuilder.isStartTimeValid()) {
-      this.snackBar.open("Clip cannot be less than 500ms", "Close", {duration: 3000})
+      this.snackBar.open("Clip start time is invalid", "Close", {duration: 3000})
       return;
     }
+    // if the end time is invalid, open a snackbar with error message
     if (!this.inputBuilder.isEndTimeValid(this.videoEndTime)) {
-      this.snackBar.open("Clip end time cannot exceed video duration", "Close", {duration: 3000});
+      this.snackBar.open("Clip end time is invalid", "Close", {duration: 3000});
       return;
     }
-    var startTimeValue = this.inputBuilder.getValue("startTime");
-    var endTimeValue = this.inputBuilder.getValue("endTime");
-    var startMinutes = this.prependZero(startTimeValue.minutes, false);
-    var startSeconds = this.prependZero(startTimeValue.seconds, false);
-    var startMs = this.prependZero(startTimeValue.ms, true);
-    var startTimeString = startMinutes + ":" + startSeconds + "." + startMs;
-    var endMinutes = this.prependZero(endTimeValue.minutes, false);
-    var endSeconds = this.prependZero(endTimeValue.seconds, false);
-    var endMs = this.prependZero(endTimeValue.ms, true);
-    var endTimeString = endMinutes + ":" + endSeconds + "." + endMs;
-    clipName = clipName.trim().replace(/\s+/g, '-').toLowerCase();
 
-    var commandString = "@Boardbot add-clip " + clipName + " " + this.videoId + " " + startTimeString + " " + endTimeString;
+    // Build the command string
+    var commandBuilder = new CommandStringBuilder(clipName, this.videoId, this.inputBuilder.getSeconds("startTime"), this.inputBuilder.getSeconds("endTime"));
+    var commandString = commandBuilder.build();
 
+    // Send it to a snackbar
     var sb = this.snackBar.open(commandString, "Copy To Clipboard", {duration: 3000});
 
+    // On button press, copy command string to users clipboard
     sb.onAction().subscribe(() => {
       document.addEventListener('copy', (e: ClipboardEvent) => {
         e.clipboardData.setData('text/plain', (commandString));
@@ -126,21 +146,6 @@ export class PopupComponent implements OnInit {
       });
       document.execCommand('copy');
     });
-  }
-
-  getEndTime() {
-    this.inputBuilder.setTime("endTime", this.videoEndTime);
-    return;
-  }
-
-  prependZero(n, isMs: boolean) {
-    var str = ("" + n);
-    if (n < 100 && isMs) {
-      str = "0" + str;
-    }
-    if (n < 10) {
-      str = "0" + str;
-    }
   }
 
   save() {
@@ -179,16 +184,27 @@ export class PopupComponent implements OnInit {
   // TODO: This method doesn't really need to exist, need to figure out why DOM elements aren't updating on variable change
   setPreviewingState(previewing: boolean) {
     this.previewing = previewing;
-    // Really hack-y way of getting the preview button color to refresh on variable change. Idk why it only updates on blur or click
+    this.refreshDOM();
+  }
+
+  // Really hack-y way of getting the preview button color to refresh on variable change. Idk why it only updates on blur or click
+  refreshDOM() {
     var el = document.getElementById("startMinutes");
     var evObj = document.createEvent("Events");
     evObj.initEvent("click", true, false);
     evObj.initEvent("blur", true, false);
     el.dispatchEvent(evObj);
+    return;
   }
 
   getCurrentTime(control: string) {
     this.port.postMessage(new GetCurrentTimeRequest(control));
+    return;
+  }
+
+  getEndTime() {
+    this.inputBuilder.setTime("endTime", this.videoEndTime);
+    this.save();
     return;
   }
 
@@ -197,8 +213,15 @@ export class PopupComponent implements OnInit {
     const pattern = /[0-9]/g;
     if (!pattern.test(e.key)) {
       // Input was not a number
-      if (e.key == "Backspace") return;
-      e.preventDefault();
+      switch (e.key) {
+        case "Backspace": return;
+        case "ArrowLeft": return;
+        case "ArrowRight": return;
+        case "ArrowDown": return;
+        case "ArrowUp": return;
+        case "Tab": return;
+        default: e.preventDefault();
+      }
     }
     return;
   }

@@ -33,7 +33,7 @@ chrome.runtime.onConnect.addListener(port => {
           video.currentTime = msg.StartSeconds;
           video.play();
           previewing = true;
-          port.postMessage(new PreviewingResponse(previewing));
+          port.postMessage(new PreviewingResponse(previewing, msg.ClipTimeMs));
 
           clipTimer = setInterval(() => {
             video.currentTime = msg.StartSeconds;

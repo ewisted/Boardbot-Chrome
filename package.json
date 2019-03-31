@@ -39,7 +39,7 @@
     "@types/chrome": "0.0.80",
     "@types/jasmine": "~2.8.8",
     "@types/jasminewd2": "~2.0.3",
-    "@types/node": "~8.9.4",
+    "@types/node": "^8.9.5",
     "browserify": "^16.2.3",
     "codelyzer": "~4.5.0",
     "gulp": "^4.0.0",

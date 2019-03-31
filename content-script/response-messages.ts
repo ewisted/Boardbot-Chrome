@@ -36,9 +36,11 @@ export class GetCurrentTimeResponse implements Message {
 export class PreviewingResponse implements Message {
     ActionType: ActionTypes;
     Previewing: boolean;
+    ClipTimeMs: number;
 
-    constructor(previewing: boolean) {
+    constructor(previewing: boolean, cliptimeMs: number = null) {
         this.ActionType = ActionTypes.PreviewingChanged;
         this.Previewing = previewing;
+        this.ClipTimeMs = cliptimeMs;
     }
 }

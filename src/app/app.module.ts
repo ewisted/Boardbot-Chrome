@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { HomepageComponent } from './homepage/homepage.component';
 import { EventPageComponent } from './event-page/event-page.component';
 import { PopupComponent } from './popup/popup.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ExtensionMaterialModule } from './extension-material-module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -20,7 +20,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    BrowserAnimationsModule,
+    NoopAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
     ExtensionMaterialModule
