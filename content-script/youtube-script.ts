@@ -65,4 +65,12 @@ chrome.runtime.onConnect.addListener(port => {
           break;
       }
     });
+
+    video.onpause = () => {
+      if (previewing) {
+        previewing = false;
+        clearInterval(clipTimer);
+        port.postMessage(new PreviewingResponse(previewing));
+      }
+    };
 });
