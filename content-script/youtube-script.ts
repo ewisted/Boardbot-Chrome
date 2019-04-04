@@ -2,7 +2,7 @@
 import { GetCurrentTimeRequest, StartPreviewingRequest, SaveRequest } from "./request-messages";
 import { Message } from './message';
 import { ActionTypes } from './action-types';
-import { GetVideoResponse, PreviewingResponse, GetCurrentTimeResponse, PreviewingStateResponse } from './response-messages';
+import { PreviewingResponse, GetCurrentTimeResponse, SyncResponse } from './response-messages';
 
 var video, clipTimer, startSeconds, endSeconds, clipName, previewing, clipTimeMs;
 
@@ -24,12 +24,17 @@ chrome.runtime.onConnect.addListener(port => {
     port.onMessage.addListener(msg => {
       switch (msg.ActionType) {
 
-        case ActionTypes.GetVideo:
+        case ActionTypes.Sync:
           var videoId = document.location.search.split("?v=")[1].substr(0, 11);
-          port.postMessage(new GetVideoResponse(video.duration, videoId, startSeconds, endSeconds, clipName, previewing));
+          port.postMessage(new SyncResponse(
+            video.duration,
+            videoId,
+            startSeconds == null ? 0 : startSeconds,
+            endSeconds == null ? video.duration : endSeconds,
+            clipName == null ? "" : clipName));
           if (previewing) {
             var msIntoClip = (video.currentTime - startSeconds) * 1000;
-            port.postMessage(new PreviewingStateResponse(clipTimeMs, msIntoClip));
+            port.postMessage(new PreviewingResponse(previewing, clipTimeMs, msIntoClip));
           }
           break;
 

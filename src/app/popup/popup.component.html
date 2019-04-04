@@ -42,7 +42,7 @@
   </mat-card-content>
   <mat-card-actions>
     <section class="button-section">
-      <button mat-raised-button class="button-margin" [color]="previewing ? 'primary' : 'accent'" (click)="previewClip()" [disabled]="disabled">Preview</button>
+      <button mat-raised-button class="button-margin" [color]="previewBuilder.previewing ? 'primary' : 'accent'" (click)="previewClip()" [disabled]="disabled">Preview</button>
       <button mat-raised-button class="button-margin" color="accent" (click)="submit()" [disabled]="disabled">Save</button>
       <div>
         <form [formGroup]="inputBuilder.nameInput">
@@ -53,7 +53,7 @@
       </div>
     </section>
     <section class="preview-tracker">
-      <mat-progress-bar class="progress-bar" [color]="primary" [mode]="determinate" [value]="progressPercent"></mat-progress-bar>
+      <mat-progress-bar class="progress-bar" [color]="primary" [mode]="determinate" [value]="previewBuilder.progressPercent"></mat-progress-bar>
     </section>
   </mat-card-actions>
 </mat-card>

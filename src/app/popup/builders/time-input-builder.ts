@@ -1,6 +1,6 @@
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
-export class PopupInputBuilder {
+export class TimeInputBuilder {
     
     timeInput: FormGroup;
     nameInput: FormGroup;

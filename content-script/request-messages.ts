@@ -1,11 +1,11 @@
 import { Message } from './message';
 import { ActionTypes } from './action-types';
 
-export class GetVideoRequest implements Message {
+export class SyncRequest implements Message {
     ActionType: ActionTypes;
 
     constructor() {
-        this.ActionType = ActionTypes.GetVideo;
+        this.ActionType = ActionTypes.Sync;
     }
 }
 

@@ -1,9 +1,8 @@
 export enum ActionTypes {
-    GetVideo,
+    Sync,
     GetCurrentTime,
     StartPreviewing,
     StopPreviewing,
     Save,
     PreviewingChanged,
-    PreviewingState
 }
