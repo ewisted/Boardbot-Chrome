@@ -5,4 +5,7 @@ export enum ActionTypes {
     StopPreviewing,
     Save,
     PreviewingChanged,
+    VideoFound,
+    Ping,
+    Pong,
 }

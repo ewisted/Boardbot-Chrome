@@ -7,8 +7,10 @@ import { ActionTypes } from 'content-script/action-types';
 import { CommandStringBuilder } from './builders/command-string-builder';
 import { TrackPreviewBuilder } from './builders/track-preview-builder';
 import { PreviewingResponse, GetCurrentTimeResponse } from 'content-script/response-messages';
-import { SaveRequest, StopPreviewingRequest, StartPreviewingRequest, GetCurrentTimeRequest, SyncRequest } from 'content-script/request-messages';
+import { SaveRequest, StopPreviewingRequest, StartPreviewingRequest, GetCurrentTimeRequest, SyncRequest, Ping } from 'content-script/request-messages';
+import { ThemeService } from '../core/services/theme.service';
 import { timer, Observable, Subscription } from 'rxjs';
+import { browser } from 'protractor';
 
 @Component({
   selector: 'app-popup',
@@ -42,21 +44,54 @@ export class PopupComponent implements OnInit {
    */
   public previewBuilder = new TrackPreviewBuilder();
 
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar) { }
+  public regex = new RegExp(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=)\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/);
 
-  ngOnInit() { 
+  isDarkTheme: Observable<boolean>;
+
+  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private themeService: ThemeService) { }
+
+  ngOnInit() {
+    this.isDarkTheme = this.themeService.isDarkTheme;
     // Connect to the currently open window
-    chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-      // Esablish a persistant connection to the content script
-      this.port = chrome.tabs.connect(tabs[0].id);
-      if (this.port) {
-        console.log("Popup connected to content script");
-        // Listener for all content script replys
-        this.setupReplyListener();
-        // Get video info
-        this.port.postMessage(new SyncRequest());
-      }
-    });
+    try {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        console.log(tabs[0].url);
+        console.log(this.regex.test(tabs[0].url));
+        if (this.regex.test(tabs[0].url)) {
+          chrome.tabs.sendMessage(tabs[0].id, new Ping(), (msg) => {
+            if (msg) {
+              // Esablish a persistant connection to the content script
+              this.port = chrome.tabs.connect(tabs[0].id);
+              if (this.port) {
+                console.log("Popup connected to content script");
+                // Listener for all content script replys
+                this.setupReplyListener();
+                this.port.postMessage(new SyncRequest());
+              }
+            }
+            else {
+              console.log("Url match: injecting content script");
+              chrome.tabs.executeScript({
+                file: 'content-script.js'
+              });
+
+              setTimeout(() => {
+                // Esablish a persistant connection to the content script
+                this.port = chrome.tabs.connect(tabs[0].id);
+                if (this.port) {
+                  console.log("Popup connected to content script");
+                  // Listener for all content script replys
+                  this.setupReplyListener();
+                }
+              }, 100);
+            }
+          })
+        }
+      });
+    }
+    catch(error) {
+      console.error(error);
+    }
   }
 
   setupReplyListener() {

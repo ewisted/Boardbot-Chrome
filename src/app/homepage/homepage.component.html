@@ -1,36 +1,10 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Boardbot-Chrome</title>
-  </head>
-  <body>
-    <div class="vertical-menu">
-      <div class="menu-item" id="toggle-state"><h3>Toggle On/Off</h3></div>
-      <hr>
-      <mat-card class="theme-card">
+<div>
+    <mat-card class="theme-card">
         <mat-card-header>
           <mat-card-title>Select Theme</mat-card-title>
-          <mat-card-subtitle>Set this to whatever YouTube theme you use</mat-card-subtitle>
         </mat-card-header>
-        <mat-card-content>
-          <mat-radio-group class="theme-radio-group" [(ngModel)]="selectedTheme">
-            <mat-radio-button class="theme-radio-button" *ngFor="let theme of availableThemes" [value]="theme">
-              {{theme}}
-            </mat-radio-button>
-          </mat-radio-group>
-        </mat-card-content>
         <mat-card-actions>
-          <button mat-raised-button color="accent" (click)="updateTheme(selectedTheme)">Submit</button>
+          <mat-slide-toggle id="theme-toggle" [checked]="isDarkTheme | async" (change)="toggleDarkTheme($event.checked)">Dark theme</mat-slide-toggle>
         </mat-card-actions>
-      </mat-card>
-      <!-- <p id="current-theme">Theme</p>
-      <form id="theme-form">
-        <input type="radio" name="theme" value="light" checked> Light Mode<br>
-        <input type="radio" name="theme" value="dark"> Dark Mode<br>
-        <br>
-      </form>
-      <button type="button" id="theme-button">Submit</button> -->
-    </div>
-    <script src="options.js"></script>
-  </body>
-</html>
+    </mat-card>
+</div>

@@ -1,6 +1,14 @@
 import { Message } from './message';
 import { ActionTypes } from './action-types';
 
+export class Pong implements Message {
+    ActionType: ActionTypes;
+
+    constructor() {
+        this.ActionType = ActionTypes.Pong;
+    }
+}
+
 export class SyncResponse implements Message {
     ActionType: ActionTypes;
     Duration: number;
