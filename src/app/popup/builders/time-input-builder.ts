@@ -1,12 +1,12 @@
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
-export class PopupInputBuilder {
+export class TimeInputBuilder {
     
     timeInput: FormGroup;
     nameInput: FormGroup;
 
-    constructor(private fb: FormBuilder, startTime?: number | TimeObj, endTime?: number | TimeObj, clipName?: string) {
-        var sm = 0, ss = 0, sms = 0, em = 0, es = 0, ems = 0, cn = "";
+    constructor(private fb: FormBuilder, startTime?: number | TimeObj, endTime?: number | TimeObj, clipName?: string, clipTags?: string) {
+        var sm = 0, ss = 0, sms = 0, em = 0, es = 0, ems = 0, cn = "", ct = "";
         if (typeof startTime === "number" && typeof endTime === "number") {
             sm = Math.floor(startTime / 60);
             ss = Math.floor(startTime % 60);
@@ -42,6 +42,9 @@ export class PopupInputBuilder {
         if (clipName) {
             cn = clipName;
         }
+        if (clipTags) {
+            ct = clipTags;
+        }
         this.timeInput = this.fb.group({
             startTime: this.fb.group({
               minutes: [{value: sm, disabled: true}],
@@ -55,8 +58,9 @@ export class PopupInputBuilder {
             })
         });
         this.nameInput = this.fb.group({
-            clipName: [{value: cn, disabled: true}, Validators.compose([Validators.required])]
-          });
+            clipName: [{value: cn, disabled: true}, Validators.compose([Validators.required])],
+            clipTags: [{value: ct, disabled: true}]
+        });
     }
 
     /**
@@ -128,6 +132,15 @@ export class PopupInputBuilder {
     }
 
     /**
+     * Get the current clip tags input value
+     * 
+     * @return clip tags string
+     */
+    getClipTags() {
+        return this.nameInput.get("clipTags").value;
+    }
+
+    /**
      * Sets the value of clip name input
      * 
      * @param clipName clip name string
@@ -135,6 +148,15 @@ export class PopupInputBuilder {
     setClipName(clipName: string) {
         this.nameInput.get("clipName").setValue(clipName);
         return;
+    }
+
+    /**
+     * Sets the value of clip tags input
+     * 
+     * @param clipTags clip tags string
+     */
+    setClipTags(clipTags: string) {
+        this.nameInput.get("clipTags").setValue(clipTags);
     }
 
     /**

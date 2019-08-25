@@ -1,8 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { PopupInputBuilder } from './popup.input-builder'
+import { TimeInputBuilder } from './builders/time-input-builder'
 import { MatSnackBar } from '@angular/material';
 import { isNullOrUndefined } from 'util';
+import { ActionTypes } from 'content-script/action-types';
+import { CommandStringBuilder } from './builders/command-string-builder';
+import { TrackPreviewBuilder } from './builders/track-preview-builder';
+import { PreviewingResponse, GetCurrentTimeResponse } from 'content-script/response-messages';
+import { SaveRequest, StopPreviewingRequest, StartPreviewingRequest, GetCurrentTimeRequest, SyncRequest, Ping } from 'content-script/request-messages';
+import { ThemeService } from '../core/services/theme.service';
+import { timer, Observable, Subscription } from 'rxjs';
+import { browser } from 'protractor';
 
 @Component({
   selector: 'app-popup',
@@ -11,13 +19,13 @@ import { isNullOrUndefined } from 'util';
 })
 export class PopupComponent implements OnInit {
   /**
+   * Name of the bot to use when building the add-clip command
+   */
+  public botName: string;
+  /**
    * End time of the video in seconds
    */
   public videoEndTime: number;
-  /**
-   * Property video preview button is bound to, determines if the user is previewing or not
-   */
-  public previewing: boolean;
   /**
    * The current tabs youtube video id, if it exists
    */
@@ -29,94 +37,135 @@ export class PopupComponent implements OnInit {
   /**
    * Builds and controls the inputs for start and end time
    */
-  public inputBuilder = new PopupInputBuilder(this.fb);
+  public inputBuilder = new TimeInputBuilder(this.fb);
   /**
    * If the clip maker should be disabled
    * Defaults to true but is updated if a content script is loaded
    */
   public disabled = true;
+  /**
+   * Builds and controls clip preview state
+   */
+  public previewBuilder = new TrackPreviewBuilder();
 
-  constructor(private fb: FormBuilder, private snackBar: MatSnackBar) { }
+  public regex = new RegExp(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=)\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/);
 
-  ngOnInit() { 
+  isDarkTheme: Observable<boolean>;
+
+  constructor(private fb: FormBuilder, private snackBar: MatSnackBar, private themeService: ThemeService) { }
+
+  ngOnInit() {
+    this.isDarkTheme = this.themeService.isDarkTheme;
+    //this.refreshDOM();
     // Connect to the currently open window
-    chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-      // Esablish a persistant connection to the content script
-      this.port = chrome.tabs.connect(tabs[0].id);
-      if (this.port) {
-        console.log("Popup connected to content script");
-        // Listener for all content script replys
-        this.setupReplyListener();
-        // Get video info
-        this.port.postMessage({getVideoInfo: true});
-      }
-    });
+    try {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        console.log(tabs[0].url);
+        console.log(this.regex.test(tabs[0].url));
+        if (this.regex.test(tabs[0].url)) {
+          chrome.tabs.sendMessage(tabs[0].id, new Ping(), (msg) => {
+            if (msg) {
+              // Esablish a persistant connection to the content script
+              this.port = chrome.tabs.connect(tabs[0].id);
+              if (this.port) {
+                console.log("Popup connected to content script");
+                // Listener for all content script replys
+                this.setupReplyListener();
+                this.port.postMessage(new SyncRequest());
+              }
+            }
+            else {
+              console.log("Url match: injecting content script");
+              chrome.tabs.executeScript({
+                file: 'content-script.js'
+              });
+
+              setTimeout(() => {
+                // Esablish a persistant connection to the content script
+                this.port = chrome.tabs.connect(tabs[0].id);
+                if (this.port) {
+                  console.log("Popup connected to content script");
+                  // Listener for all content script replys
+                  this.setupReplyListener();
+                }
+              }, 100);
+            }
+          });
+
+          chrome.storage.sync.get("botName", (data) => {
+            this.botName = data.botName;
+          });
+        }
+      });
+    }
+    catch(error) {
+      console.error(error);
+    }
+    finally {
+      //this.refreshDOM();
+      console.log("Page loaded");
+    }
   }
 
   setupReplyListener() {
     this.port.onMessage.addListener(msg => {
-      // Response for video duration
-      if (msg.videoInfo) {
-        if (msg.recoverInfo) { 
-          this.inputBuilder = new PopupInputBuilder(this.fb, msg.recoverInfo.startSeconds, msg.recoverInfo.endSeconds, msg.recoverInfo.clipName);
-          this.setPreviewingState(msg.recoverInfo.previewing);
-        }
-        else {
-          this.setPreviewingState(false);
-          this.inputBuilder = new PopupInputBuilder(this.fb, {minutes: 0, seconds: 0, ms: 0}, msg.videoInfo.videoEndTime);
-        }
-        this.inputBuilder.enable();
-        this.disabled = false;
-        this.videoEndTime = msg.videoInfo.length;
-        this.videoId = msg.videoInfo.videoId;
+      switch (msg.ActionType) {
 
-        // Really hack-y way of getting the elements to refresh when the popup is loaded
-        var el = document.getElementById("startMinutes");
-        var evObj = document.createEvent("Events");
-        evObj.initEvent("click", true, false);
-        evObj.initEvent("blur", true, false);
-        el.dispatchEvent(evObj);
-      }
+        case ActionTypes.Sync:
+          this.videoEndTime = msg.Duration;
+          this.videoId = msg.VideoId;
+          this.inputBuilder.setTime(msg.StartSeconds, msg.EndSeconds);
+          this.inputBuilder.setClipName(msg.ClipName);
+          this.inputBuilder.setClipTags(msg.ClipTags);
+          this.disabled = false;
+          this.inputBuilder.enable();
+          this.refreshDOM();
+          break;
 
-      if (msg.previewing != null) {
-        this.setPreviewingState(msg.previewing);
-      }
+        case ActionTypes.PreviewingChanged:
+          if (msg.Previewing && msg.ClipTimeMs > 0) {
+            if (msg.MsIntoClip > 0) this.previewBuilder.trackPreviewProgress(msg.ClipTimeMs, msg.MsIntoClip);
+            else this.previewBuilder.trackPreviewProgress(msg.ClipTimeMs);
+          }
+          else {
+            this.previewBuilder.stopPreviewing();
+          }
+          break;
 
-      if (msg.currentTime && msg.control) {
-        this.inputBuilder.setTime(msg.control, msg.currentTime);
-        this.save();
+        case ActionTypes.GetCurrentTime:
+          this.inputBuilder.setTime(msg.Control, msg.CurrentTime);
+          this.save();
+          break;
       }
     });
   }
 
   submit() {
+    // If clip name is empty, open a snackbar with error message
     var clipName: string = this.inputBuilder.getClipName();
+    var clipTags: string = this.inputBuilder.getClipTags();
     if (!clipName) {
       this.snackBar.open("No clip name specified", "Close", {duration: 3000})
       return;
     }
+    // If the start time is invalid, open a snackbar with error message
     if (!this.inputBuilder.isStartTimeValid()) {
-      this.snackBar.open("Clip cannot be less than 500ms", "Close", {duration: 3000})
+      this.snackBar.open("Clip start time is invalid", "Close", {duration: 3000})
       return;
     }
+    // if the end time is invalid, open a snackbar with error message
     if (!this.inputBuilder.isEndTimeValid(this.videoEndTime)) {
-      this.snackBar.open("Clip end time cannot exceed video duration", "Close", {duration: 3000});
+      this.snackBar.open("Clip end time is invalid", "Close", {duration: 3000});
       return;
     }
-    var startTimeValue = this.inputBuilder.getValue("startTime");
-    var endTimeValue = this.inputBuilder.getValue("endTime");
-    var startMinutes = this.prependZero(startTimeValue.minutes);
-    var startSeconds = this.prependZero(startTimeValue.seconds);
-    var startTimeString = startMinutes + ":" + startSeconds + "." + startTimeValue.ms;
-    var endMinutes = this.prependZero(endTimeValue.minutes);
-    var endSeconds = this.prependZero(endTimeValue.seconds);
-    var endTimeString = endMinutes + ":" + endSeconds + "." + endTimeValue.ms;
-    clipName = clipName.trim().replace(/\s+/g, '-').toLowerCase();
 
-    var commandString = "@Boardbot add-clip " + clipName + " " + this.videoId + " " + startTimeString + " " + endTimeString;
+    // Build the command string
+    var commandString = new CommandStringBuilder(clipName, this.videoId, this.inputBuilder.getSeconds("startTime"), this.inputBuilder.getSeconds("endTime"), this.botName != null ? this.botName : "Boardbot", clipTags).build();
 
+    // Send it to a snackbar
     var sb = this.snackBar.open(commandString, "Copy To Clipboard", {duration: 3000});
 
+    // On button press, copy command string to users clipboard
     sb.onAction().subscribe(() => {
       document.addEventListener('copy', (e: ClipboardEvent) => {
         e.clipboardData.setData('text/plain', (commandString));
@@ -127,27 +176,19 @@ export class PopupComponent implements OnInit {
     });
   }
 
-  getEndTime() {
-    this.inputBuilder.setTime("endTime", this.videoEndTime);
-    return;
-  }
-
-  prependZero(n) {
-    return ("" + n).slice(-2);
-  }
-
   save() {
     // Get the start and end times from their respective form groups
     var startSeconds = this.inputBuilder.getSeconds("startTime");
     var endSeconds = this.inputBuilder.getSeconds("endTime");
     var clipName = this.inputBuilder.getClipName();
+    var clipTags = this.inputBuilder.getClipTags();
     
-    this.port.postMessage({save: true, startSeconds: startSeconds, endSeconds: endSeconds, clipName: clipName});
+    this.port.postMessage(new SaveRequest(startSeconds, endSeconds, clipName, clipTags));
   }
 
   previewClip() {
-    if (this.previewing) {
-      this.port.postMessage({stopClip: true});
+    if (this.previewBuilder.previewing) {
+      this.port.postMessage(new StopPreviewingRequest());
       return;
     }
     if (!this.inputBuilder.isStartTimeValid()) {
@@ -165,24 +206,29 @@ export class PopupComponent implements OnInit {
     var clipTimeMs = (endSeconds - startSeconds) * 1000;
 
     // Send bot a message to play at the start time
-    this.port.postMessage({playClip: clipTimeMs, startSeconds: startSeconds});
+    this.port.postMessage(new StartPreviewingRequest(clipTimeMs, startSeconds, endSeconds));
     return;
   }
 
-  // TODO: This method doesn't really need to exist, need to figure out why DOM elements aren't updating on variable change
-  setPreviewingState(previewing: boolean) {
-    console.log("Previewing: " + previewing);
-    this.previewing = previewing;
-    // Really hack-y way of getting the preview button color to refresh on variable change. Idk why it only updates on blur or click
+  // Really hack-y way of getting the preview button color to refresh on variable change
+  // I've spent hours trying to figure out why ui elements don't update, and it might have to do with how gulp compiles the angular app to javascript
+  refreshDOM() {
     var el = document.getElementById("startMinutes");
     var evObj = document.createEvent("Events");
     evObj.initEvent("click", true, false);
     evObj.initEvent("blur", true, false);
     el.dispatchEvent(evObj);
+    return;
   }
 
   getCurrentTime(control: string) {
-    this.port.postMessage({getCurrentTime: control});
+    this.port.postMessage(new GetCurrentTimeRequest(control));
+    return;
+  }
+
+  getEndTime() {
+    this.inputBuilder.setTime("endTime", this.videoEndTime);
+    this.save();
     return;
   }
 
@@ -191,8 +237,15 @@ export class PopupComponent implements OnInit {
     const pattern = /[0-9]/g;
     if (!pattern.test(e.key)) {
       // Input was not a number
-      if (e.key == "Backspace") return;
-      e.preventDefault();
+      switch (e.key) {
+        case "Backspace": return;
+        case "ArrowLeft": return;
+        case "ArrowRight": return;
+        case "ArrowDown": return;
+        case "ArrowUp": return;
+        case "Tab": return;
+        default: e.preventDefault();
+      }
     }
     return;
   }

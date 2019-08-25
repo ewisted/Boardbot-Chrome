@@ -1,3 +1,7 @@
+.main-card {
+ margin: 0px;
+}
+
 .divider {
   margin: 10px;
 }
@@ -24,7 +28,7 @@
 }
 
 .button-section div:last-child {
-  align-self: right;
+  align-self: flex-end;
 }
 
 .button-margin {
@@ -33,6 +37,17 @@
 
 .name-section {
   display: flex;
-  align-content: right;
-  align-items: right;
+  align-content: center;
+  align-items: flex-end;
+}
+
+.preview-tracker {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+}
+
+.progress-bar {
+  margin: 0 10px;
 }

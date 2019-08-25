@@ -8,13 +8,6 @@
     "page": "index.html#/event-page",
     "persistent": false
   },
-  "content_scripts": [
-    {
-      "matches": ["https://*.youtube.com/watch?v=*"],
-      "js": ["content-script.js"],
-      "run_at": "document_end"
-    }
-  ],
   "browser_action": {
     "default_popup": "index.html#/popup",
     "default_icon": {

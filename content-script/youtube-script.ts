@@ -1,64 +1,106 @@
 // import { TimeInput } from '../common/models/TimeInput'
-var video, clipTimer, startSeconds, endSeconds, clipName, previewing;
+import { GetCurrentTimeRequest, StartPreviewingRequest, SaveRequest } from "./request-messages";
+import { Message } from './message';
+import { ActionTypes } from './action-types';
+import { PreviewingResponse, GetCurrentTimeResponse, SyncResponse, Pong } from './response-messages';
+
+var video, clipTimer, startSeconds, endSeconds, clipName, clipTags, previewing, clipTimeMs;
 
 console.log('Boardbot: Content script injected');
+var onVideoFound = new Event('videofound');
 
-// Main function for injecting our ui
+// Look for video on webpage
 var videoAvailable = setInterval(() => {
-    debugger;
     video = document.getElementsByClassName("html5-main-video")[0];
     if (video != null) {
-        console.log("Boardbot: Video found");
-        clearInterval(videoAvailable);
+      window.dispatchEvent(onVideoFound);
+      console.log("Boardbot: Video found");
+      clearInterval(videoAvailable);
     }
 }, 100);
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.ActionType == ActionTypes.Ping) {
+    sendResponse(new Pong());
+  }
+});
 
 // Recieves messages from popup.js or background.js
 chrome.runtime.onConnect.addListener(port => {
     console.log("Boardbot: Content script connected on listening port");
+
+    window.addEventListener('videofound', (e) => {
+      var videoId = document.location.search.split("?v=")[1].substr(0, 11);
+      port.postMessage(new SyncResponse(
+        video.duration,
+        videoId,
+        startSeconds == null ? 0 : startSeconds,
+        endSeconds == null ? video.duration : endSeconds,
+        clipName == null ? "" : clipName,
+        clipTags == null ? "" : clipTags));
+      if (previewing) {
+        var msIntoClip = (video.currentTime - startSeconds) * 1000;
+        port.postMessage(new PreviewingResponse(previewing, clipTimeMs, msIntoClip));
+      }
+
+      video.onpause = () => {
+        if (previewing) {
+          previewing = false;
+          clearInterval(clipTimer);
+          port.postMessage(new PreviewingResponse(previewing));
+        }
+      };
+    });
+
     port.onMessage.addListener(msg => {
-        if (msg.getVideoInfo) {
-            var videoId = document.location.search.split("?v=")[1].substr(0, 11);
-            if (startSeconds || endSeconds || clipName || previewing) {
-                port.postMessage({
-                    videoInfo: {
-                        length: video.duration, 
-                        videoId: videoId
-                    }, 
-                    recoverInfo: {
-                        startSeconds: startSeconds, 
-                        endSeconds: endSeconds, 
-                        clipName: clipName, 
-                        previewing: previewing
-                    }
-                });
-            }
-            else {
-                port.postMessage({videoInfo: {length: video.duration, videoId: videoId}});
-            }
-        }
-        if (typeof msg.playClip === "number" && typeof msg.startSeconds === "number") {
-            video.currentTime = msg.startSeconds;
-            video.play();
-            previewing = true;
-            port.postMessage({previewing: true});
-            clipTimer = setInterval(() => {
-                video.currentTime = msg.startSeconds;
-            }, msg.playClip);
-        }
-        if (msg.stopClip == true) {
-            clearInterval(clipTimer);
-            video.pause();
-            previewing = false;
-            port.postMessage({previewing: false});
-        }
-        if (msg.getCurrentTime) {
-            port.postMessage({currentTime: video.currentTime, control: msg.getCurrentTime});
-        }
-        if (msg.save) {
-            startSeconds = msg.startSeconds;
-            endSeconds = msg.endSeconds;
-            clipName = msg.clipName;
-        }
+      switch (msg.ActionType) {
+
+        case ActionTypes.Sync:
+          var videoId = document.location.search.split("?v=")[1].substr(0, 11);
+          port.postMessage(new SyncResponse(
+            video.duration,
+            videoId,
+            startSeconds == null ? 0 : startSeconds,
+            endSeconds == null ? video.duration : endSeconds,
+            clipName == null ? "" : clipName,
+            clipTags == null ? "" : clipTags));
+          if (previewing) {
+            var msIntoClip = (video.currentTime - startSeconds) * 1000;
+            port.postMessage(new PreviewingResponse(previewing, clipTimeMs, msIntoClip));
+          }
+          break;
+
+        case ActionTypes.StartPreviewing:
+          startSeconds = msg.StartSeconds;
+          endSeconds = msg.EndSeconds;
+          clipTimeMs = msg.ClipTimeMs;
+          video.currentTime = startSeconds;
+          video.play();
+          previewing = true;
+          port.postMessage(new PreviewingResponse(previewing, msg.ClipTimeMs));
+
+          clipTimer = setInterval(() => {
+            video.currentTime = startSeconds;
+          }, msg.ClipTimeMs);
+          break;
+
+        case ActionTypes.StopPreviewing:
+          clearInterval(clipTimer);
+          video.pause();
+          previewing = false;
+          port.postMessage(new PreviewingResponse(previewing));
+          break;
+
+        case ActionTypes.GetCurrentTime:
+          port.postMessage(new GetCurrentTimeResponse(video.currentTime, msg.Control));
+          break;
+
+        case ActionTypes.Save:
+          startSeconds = msg.StartSeconds;
+          endSeconds = msg.EndSeconds;
+          clipName = msg.ClipName;
+          clipTags = msg.ClipTags;
+          break;
+      }
     });
 });

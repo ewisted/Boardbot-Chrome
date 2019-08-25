@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var ts = require('gulp-typescript');
+var babelify = require('babelify');
 var exec = require('child_process').exec;
 var browserify = require("browserify");
 var source = require('vinyl-source-stream');
@@ -17,12 +18,14 @@ gulp.task('ng-build', function(cb) {
     });
 });
 gulp.task('content-script', function() {
+  var babelifyConfig = { extensions: ['.js', '.jsx', '.ts', '.tsx'] };
     return browserify({
             basedir: '.',
             debug: true,
             entries: 'content-script/youtube-script.ts'
         })
         .plugin(tsify)
+        .transform(babelify.configure(babelifyConfig))
         .bundle()
         .pipe(source('content-script.js'))
         .pipe(buffer())

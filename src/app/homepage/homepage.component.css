@@ -9,10 +9,15 @@
     text-decoration: none; /* Remove underline from links */
   }
   
-  .menu-item:hover {
-    background-color: #f2f2f2; /* Grey background on mouse-over */
-  }
+.menu-item:hover {
+  background-color: #f2f2f2; /* Grey background on mouse-over */
+}
 
-  .mat-radio-button ~ .mat-radio-button {
-    margin-left: 16px;
-  }
+.mat-radio-button ~ .mat-radio-button {
+  margin-left: 16px;
+}
+
+.settings-page {
+  height: 100vh;
+  width: 100%;
+}
