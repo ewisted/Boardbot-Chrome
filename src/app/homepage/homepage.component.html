@@ -1,10 +1,37 @@
-<div>
-    <mat-card class="theme-card">
-        <mat-card-header>
-          <mat-card-title>Select Theme</mat-card-title>
-        </mat-card-header>
-        <mat-card-actions>
-          <mat-slide-toggle id="theme-toggle" [checked]="isDarkTheme | async" (change)="toggleDarkTheme($event.checked)">Dark theme</mat-slide-toggle>
-        </mat-card-actions>
-    </mat-card>
+<div class="settings-page" [ngStyle]="{'background-color': ((isDarkTheme | async) ? '#000000' : '#ffffff')}">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Settings</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <br>
+      <form [formGroup]="botNameInput">
+        <mat-form-field>
+          <div>Current: {{ botName | async }}</div>
+          <br>
+          <input id="bot-name" matInput type="text" placeholder="Bot Name" formControlName="botName" (blur)="save()">
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+    <mat-card-actions>
+      <mat-slide-toggle id="theme-toggle" [checked]="isDarkTheme | async" (change)="toggleDarkTheme($event.checked)">Dark theme</mat-slide-toggle>
+    </mat-card-actions>
+  </mat-card>
+  <br>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>About</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <br>
+      <p>This is an open source project that serves as an add-on to a discord bot called Boardbot</p>
+      <p>To report any bugs, head to the Github repo at the link below and submit an issue</p>
+      <br>
+      <a href="https://github.com/ewisted/Boardbot-Chrome" [ngStyle]="{'color': ((isDarkTheme | async) ? '#33FFDA' : '#3364FF')}">Visit the Github Repository</a>
+    </mat-card-content>
+    <mat-card-actions>
+      <p>Project maintained by Eric Wisted</p>
+    </mat-card-actions>
+  </mat-card>
 </div>
+

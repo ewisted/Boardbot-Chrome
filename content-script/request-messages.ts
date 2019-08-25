@@ -54,11 +54,13 @@ export class SaveRequest implements Message {
     StartSeconds: number;
     EndSeconds: number;
     ClipName: string;
+    ClipTags: string;
 
-    constructor(startSeconds: number, endSeconds: number, clipName: string) {
+    constructor(startSeconds: number, endSeconds: number, clipName: string, clipTags: string) {
         this.ActionType = ActionTypes.Save;
         this.StartSeconds = startSeconds;
         this.EndSeconds = endSeconds;
         this.ClipName = clipName;
+        this.ClipTags = clipTags;
     }
 }

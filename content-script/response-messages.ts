@@ -16,14 +16,16 @@ export class SyncResponse implements Message {
     StartSeconds: number;
     EndSeconds: number;
     ClipName: string;
+    ClipTags: string;
 
-    constructor(duration: number, videoId: string, startSeconds: number, endSeconds: number, clipName: string) {
+    constructor(duration: number, videoId: string, startSeconds: number, endSeconds: number, clipName: string, clipTags: string) {
         this.ActionType = ActionTypes.Sync;
         this.Duration = duration;
         this.VideoId = videoId;
         this.StartSeconds = startSeconds;
         this.EndSeconds = endSeconds;
         this.ClipName = clipName;
+        this.ClipTags = clipTags;
     }
 }
 

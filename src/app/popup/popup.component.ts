@@ -19,6 +19,10 @@ import { browser } from 'protractor';
 })
 export class PopupComponent implements OnInit {
   /**
+   * Name of the bot to use when building the add-clip command
+   */
+  public botName: string;
+  /**
    * End time of the video in seconds
    */
   public videoEndTime: number;
@@ -52,6 +56,7 @@ export class PopupComponent implements OnInit {
 
   ngOnInit() {
     this.isDarkTheme = this.themeService.isDarkTheme;
+    //this.refreshDOM();
     // Connect to the currently open window
     try {
       chrome.tabs.query({active: true, currentWindow: true}, tabs => {
@@ -85,12 +90,20 @@ export class PopupComponent implements OnInit {
                 }
               }, 100);
             }
-          })
+          });
+
+          chrome.storage.sync.get("botName", (data) => {
+            this.botName = data.botName;
+          });
         }
       });
     }
     catch(error) {
       console.error(error);
+    }
+    finally {
+      //this.refreshDOM();
+      console.log("Page loaded");
     }
   }
 
@@ -103,6 +116,7 @@ export class PopupComponent implements OnInit {
           this.videoId = msg.VideoId;
           this.inputBuilder.setTime(msg.StartSeconds, msg.EndSeconds);
           this.inputBuilder.setClipName(msg.ClipName);
+          this.inputBuilder.setClipTags(msg.ClipTags);
           this.disabled = false;
           this.inputBuilder.enable();
           this.refreshDOM();
@@ -129,6 +143,7 @@ export class PopupComponent implements OnInit {
   submit() {
     // If clip name is empty, open a snackbar with error message
     var clipName: string = this.inputBuilder.getClipName();
+    var clipTags: string = this.inputBuilder.getClipTags();
     if (!clipName) {
       this.snackBar.open("No clip name specified", "Close", {duration: 3000})
       return;
@@ -145,7 +160,7 @@ export class PopupComponent implements OnInit {
     }
 
     // Build the command string
-    var commandString = new CommandStringBuilder(clipName, this.videoId, this.inputBuilder.getSeconds("startTime"), this.inputBuilder.getSeconds("endTime")).build();
+    var commandString = new CommandStringBuilder(clipName, this.videoId, this.inputBuilder.getSeconds("startTime"), this.inputBuilder.getSeconds("endTime"), this.botName != null ? this.botName : "Boardbot", clipTags).build();
 
     // Send it to a snackbar
     var sb = this.snackBar.open(commandString, "Copy To Clipboard", {duration: 3000});
@@ -166,8 +181,9 @@ export class PopupComponent implements OnInit {
     var startSeconds = this.inputBuilder.getSeconds("startTime");
     var endSeconds = this.inputBuilder.getSeconds("endTime");
     var clipName = this.inputBuilder.getClipName();
+    var clipTags = this.inputBuilder.getClipTags();
     
-    this.port.postMessage(new SaveRequest(startSeconds, endSeconds, clipName));
+    this.port.postMessage(new SaveRequest(startSeconds, endSeconds, clipName, clipTags));
   }
 
   previewClip() {

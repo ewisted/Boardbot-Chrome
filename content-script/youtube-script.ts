@@ -4,7 +4,7 @@ import { Message } from './message';
 import { ActionTypes } from './action-types';
 import { PreviewingResponse, GetCurrentTimeResponse, SyncResponse, Pong } from './response-messages';
 
-var video, clipTimer, startSeconds, endSeconds, clipName, previewing, clipTimeMs;
+var video, clipTimer, startSeconds, endSeconds, clipName, clipTags, previewing, clipTimeMs;
 
 console.log('Boardbot: Content script injected');
 var onVideoFound = new Event('videofound');
@@ -36,7 +36,8 @@ chrome.runtime.onConnect.addListener(port => {
         videoId,
         startSeconds == null ? 0 : startSeconds,
         endSeconds == null ? video.duration : endSeconds,
-        clipName == null ? "" : clipName));
+        clipName == null ? "" : clipName,
+        clipTags == null ? "" : clipTags));
       if (previewing) {
         var msIntoClip = (video.currentTime - startSeconds) * 1000;
         port.postMessage(new PreviewingResponse(previewing, clipTimeMs, msIntoClip));
@@ -61,7 +62,8 @@ chrome.runtime.onConnect.addListener(port => {
             videoId,
             startSeconds == null ? 0 : startSeconds,
             endSeconds == null ? video.duration : endSeconds,
-            clipName == null ? "" : clipName));
+            clipName == null ? "" : clipName,
+            clipTags == null ? "" : clipTags));
           if (previewing) {
             var msIntoClip = (video.currentTime - startSeconds) * 1000;
             port.postMessage(new PreviewingResponse(previewing, clipTimeMs, msIntoClip));
@@ -97,6 +99,7 @@ chrome.runtime.onConnect.addListener(port => {
           startSeconds = msg.StartSeconds;
           endSeconds = msg.EndSeconds;
           clipName = msg.ClipName;
+          clipTags = msg.ClipTags;
           break;
       }
     });

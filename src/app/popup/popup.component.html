@@ -1,4 +1,4 @@
-<mat-card class="main-card" *ngIf="inputBuilder;else no_video">
+<mat-card class="main-card">
   <mat-card-header>
     <mat-card-title>Clip Maker</mat-card-title>
     <mat-card-subtitle>Set the start and end times to preview your clip</mat-card-subtitle>
@@ -46,8 +46,11 @@
       <button mat-raised-button class="button-margin" color="accent" (click)="submit()" [disabled]="disabled">Save</button>
       <div>
         <form [formGroup]="inputBuilder.nameInput">
-          <mat-form-field>
+          <mat-form-field [ngStyle]="{'margin-left': '1em'}">
             <input matInput type="text" placeholder="Clip Name" formControlName="clipName" (blur)="save()">
+          </mat-form-field>
+          <mat-form-field [ngStyle]="{'margin-left': '2em'}">
+            <input matInput type="text" placeholder="Clip Tags" formControlName="clipTags" (blur)="save()">
           </mat-form-field>
         </form>
       </div>
@@ -57,4 +60,3 @@
     </section>
   </mat-card-actions>
 </mat-card>
-<ng-template #no_video>No video found</ng-template>

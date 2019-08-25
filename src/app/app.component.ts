@@ -11,9 +11,10 @@ export class AppComponent implements OnInit {
   title = 'boardbot-extension';
   isDarkTheme: Observable<boolean>;
 
-  constructor(private themeService: ThemeService) { }
+  constructor(private themeService: ThemeService) { 
+    this.isDarkTheme = this.themeService.isDarkTheme;
+  }
 
   ngOnInit() {
-    this.isDarkTheme = this.themeService.isDarkTheme;
   }
 }
