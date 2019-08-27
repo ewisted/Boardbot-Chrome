@@ -7,6 +7,12 @@
 
 ## Developer Setup
 
+### Prerequisites
+You must have the following installed in order to installed package dependancies and build the extension.
+
+- [Node.js](https://nodejs.org/dist/v10.16.3/node-v10.16.3-x64.msi)
+- [Gulp](https://gulpjs.com/) (after installing node)
+
 ### Building the Extension
  This project uses [gulp](https://gulpjs.com/) to build the components of the application into a javascript chrome extension
 
