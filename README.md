@@ -8,7 +8,7 @@
 ## Developer Setup
 
 ### Prerequisites
-You must have the following installed in order to installed package dependancies and build the extension.
+You must have the following installed in order to installed package dependencies and build the extension.
 
 - [Node.js](https://nodejs.org/dist/v10.16.3/node-v10.16.3-x64.msi)
 - [Gulp](https://gulpjs.com/) (after installing node)
