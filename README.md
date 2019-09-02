@@ -4,6 +4,15 @@
 - [Developer Setup](#Developer-Setup)
   - [Building the Extension](#Building-the-Extension)
   - [Installing Dev Instance in Chrome](#Installing-Dev-Instance-in-Chrome) -->
+## Get the Extension
+You can download the extension from the Chrome web store [here](https://chrome.google.com/webstore/detail/boardbot-clip-maker/almojdfifknfmaemhpbgbaoobpmbkimi?hl=en&gl=US).
+
+## Preview
+![](https://lh3.googleusercontent.com/dIIqOS3Qu_r1Q4ccLU4N-LeI2ctYlocr9MwkBrEW-wSqm3ZXOOWo0-IOeeL90Cy7OBfn68ckWw=w640-h400-e365 "")
+
+Also has a dark mode built in!
+
+![](https://lh3.googleusercontent.com/ZttKQpZyOMgU8sk-MEPTmr6HC7no0ED_psDjvLxj2woEkI8v6wCtznSHujJ9onKMQZTvHupeuMo=w640-h400-e365 "")
 
 ## Developer Setup
 
